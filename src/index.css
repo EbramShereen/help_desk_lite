@@ -1,0 +1,183 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Light theme — RGB channels consumed by tailwind.config.js */
+  :root {
+    --c-primary: 20 33 61;
+    --c-primary-hover: 14 23 48;
+    --c-primary-subtle: 238 241 246;
+    --c-primary-foreground: 255 255 255;
+    --c-accent: 201 168 106;
+    --c-accent-hover: 184 151 90;
+    --c-accent-subtle: 246 241 231;
+    --c-accent-foreground: 26 20 8;
+    --c-surface: 255 255 255;
+    --c-surface-muted: 241 242 245;
+    --c-surface-border: 230 232 236;
+    --c-canvas: 247 248 250;
+    --c-content: 11 18 32;
+    --c-content-muted: 91 101 115;
+    --c-content-subtle: 149 160 176;
+    --c-danger: 180 35 42;
+    --c-danger-subtle: 251 239 239;
+    --c-danger-foreground: 255 255 255;
+    --c-success: 47 110 79;
+    --c-success-subtle: 237 244 240;
+    --c-success-foreground: 255 255 255;
+    --c-warning: 154 123 63;
+    --c-warning-subtle: 247 241 230;
+    --c-warning-foreground: 255 255 255;
+    --c-info: 44 90 122;
+    --c-info-subtle: 234 241 246;
+    --c-info-foreground: 255 255 255;
+    --c-status-todo: 107 114 128;
+    --c-status-todo-subtle: 243 244 246;
+    --c-status-inProgress: 37 99 235;
+    --c-status-inProgress-subtle: 239 244 255;
+    --c-status-done: 5 150 105;
+    --c-status-done-subtle: 236 253 245;
+  }
+
+  /* Dark theme — keeps the navy/gold brand on deep surfaces */
+  .dark {
+    --c-primary: 79 108 176;
+    --c-primary-hover: 92 122 190;
+    --c-primary-subtle: 30 41 66;
+    --c-primary-foreground: 255 255 255;
+    --c-accent: 201 168 106;
+    --c-accent-hover: 212 182 124;
+    --c-accent-subtle: 47 40 24;
+    --c-accent-foreground: 26 20 8;
+    --c-surface: 19 28 46;
+    --c-surface-muted: 27 39 64;
+    --c-surface-border: 42 55 83;
+    --c-canvas: 11 18 32;
+    --c-content: 231 234 240;
+    --c-content-muted: 154 166 184;
+    --c-content-subtle: 107 120 145;
+    --c-danger: 216 88 94;
+    --c-danger-subtle: 58 26 28;
+    --c-danger-foreground: 255 255 255;
+    --c-success: 74 167 122;
+    --c-success-subtle: 22 46 35;
+    --c-success-foreground: 255 255 255;
+    --c-warning: 198 165 96;
+    --c-warning-subtle: 51 42 22;
+    --c-warning-foreground: 26 20 8;
+    --c-info: 91 154 196;
+    --c-info-subtle: 22 40 53;
+    --c-info-foreground: 255 255 255;
+    --c-status-todo: 156 163 175;
+    --c-status-todo-subtle: 31 41 55;
+    --c-status-inProgress: 96 145 250;
+    --c-status-inProgress-subtle: 23 37 84;
+    --c-status-done: 52 211 153;
+    --c-status-done-subtle: 6 46 35;
+  }
+
+  html {
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-canvas text-content antialiased;
+  }
+}
+
+@keyframes hd-draw {
+  from {
+    stroke-dashoffset: 48;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Landing page motion — luxury, restrained, gen-z float */
+@keyframes hd-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes hd-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1deg);
+  }
+  50% {
+    transform: translateY(-14px) rotate(-1deg);
+  }
+}
+
+@keyframes hd-float-slow {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(10px);
+  }
+}
+
+@keyframes hd-aurora {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translate(6%, -4%) scale(1.15);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0.55;
+  }
+}
+
+@layer utilities {
+  .hd-animate-fade-up {
+    animation: hd-fade-up 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .hd-float {
+    animation: hd-float 6s ease-in-out infinite;
+  }
+  .hd-float-slow {
+    animation: hd-float-slow 8s ease-in-out infinite;
+  }
+  .hd-aurora {
+    animation: hd-aurora 14s ease-in-out infinite;
+  }
+  /* Reveal-on-scroll: hidden until .is-visible toggled by IntersectionObserver */
+  .hd-reveal {
+    opacity: 0;
+    transform: translateY(28px);
+    transition:
+      opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
+      transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .hd-reveal.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

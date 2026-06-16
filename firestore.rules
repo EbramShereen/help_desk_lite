@@ -1,0 +1,270 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if true;
+    }
+
+    function authed() {
+      return request.auth != null;
+    }
+
+    // The requester's own profile doc.
+    function me() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    // Workspace the requester belongs to (admins: own uid; members: creator's uid).
+    function myWs() {
+      return me().get('workspaceId', null);
+    }
+
+    // True when the requester operates inside workspace `ownerId`.
+    function inWorkspace(ownerId) {
+      return authed() && myWs() == ownerId;
+    }
+
+    // { permissionKey: [scopeIds] } for the requester's custom role within the
+    // owner's workspace ([] = unrestricted, {} = no custom role).
+    function scopesOf(ownerId, u) {
+      return u.get('customRoleId', null) == null
+        ? {}
+        : get(/databases/$(database)/documents/users/$(ownerId)/roles/$(u.customRoleId)).data.get('permissionScopes', {});
+    }
+
+    function isAdminU(u) { return u.role == 'admin'; }
+    function isActiveU(u) { return isAdminU(u) || u.get('active', false) == true; }
+    function iAmAdmin() { return authed() && me().role == 'admin'; }
+
+    // Has permission `k` (any scope).
+    function has(u, s, k) { return isAdminU(u) || s.get(k, null) != null; }
+    // Has `k` and `id` is in scope (or scope unrestricted).
+    function scope(u, s, k, id) {
+      return isAdminU(u) || (s.get(k, null) != null && (s.get(k, []).size() == 0 || id in s.get(k, [])));
+    }
+    // Has `k` and any of `ids` is in scope (for arrays like ticket labels).
+    function scopeAny(u, s, k, ids) {
+      return isAdminU(u) || (s.get(k, null) != null && (s.get(k, []).size() == 0 || ids.hasAny(s.get(k, []))));
+    }
+    // Active member of `teamId`.
+    function memberOf(u, teamId) { return isActiveU(u) && teamId != null && u.get('teamId', null) == teamId; }
+
+    // ─── User profiles (global; one doc per Firebase Auth account) ───────────
+    // A member's profile lives at users/{memberUid} with workspaceId = their
+    // admin's uid. Admins manage profiles whose workspaceId matches their own.
+    match /users/{userId} {
+      allow read: if authed() && canReadUser(userId);
+      allow create: if authed() && canCreateUser(userId);
+      allow update: if authed() && canUpdateUser(userId);
+      allow delete: if authed() && canManageUsers('can_remove_user', userId);
+    }
+    // The target profile's workspace equals the requester's workspace.
+    function sameWorkspace(userId) {
+      return get(/databases/$(database)/documents/users/$(userId)).data.get('workspaceId', null) == myWs();
+    }
+    function canReadUser(userId) {
+      let u = me();
+      return request.auth.uid == userId
+        || (sameWorkspace(userId) && (
+              isAdminU(u)
+              || has(u, scopesOf(myWs(), u), 'can_edit_roles')
+              || has(u, scopesOf(myWs(), u), 'can_assign_role')));
+    }
+    function canCreateUser(userId) {
+      // Self sign-up: own admin profile rooted at own workspace.
+      // Admin-invited member: created in the inviter's workspace. The new doc
+      // doesn't exist yet, so the inviter's permission must be checked against
+      // the incoming `workspaceId` (NOT via a get() on the absent target doc).
+      let u = me();
+      let isSelfSignup = request.auth.uid == userId
+                         && request.resource.data.get('workspaceId', null) == userId
+                         && request.resource.data.role == 'admin';
+
+      let isInvitedByAdmin = request.resource.data.get('workspaceId', null) == myWs()
+                             && (isAdminU(u) || has(u, scopesOf(myWs(), u), 'can_invite_user'));
+
+      return isSelfSignup || isInvitedByAdmin;
+    }
+    function canManageUsers(k, userId) {
+      let u = me();
+      return sameWorkspace(userId) && (isAdminU(u) || has(u, scopesOf(myWs(), u), k));
+    }
+    function canUpdateUser(userId) {
+      let u = me();
+      return (sameWorkspace(userId) && (isAdminU(u) || has(u, scopesOf(myWs(), u), 'can_assign_role')))
+        || (request.auth.uid == userId
+            && !request.resource.data.diff(resource.data)
+                  .affectedKeys().hasAny(['role', 'teamId', 'active', 'customRoleId', 'workspaceId']));
+    }
+
+    // ─── Workspace data — nested under the owning admin (users/{ownerId}/…) ──
+    match /users/{ownerId}/teams/{teamId} {
+      allow read: if inWorkspace(ownerId) && isActiveU(me());
+      allow create, delete: if inWorkspace(ownerId) && canManageTeams();
+      allow update: if inWorkspace(ownerId) && canUpdateTeam(ownerId, teamId);
+    }
+    function canManageTeams() {
+      let u = me();
+      return has(u, scopesOf(myWs(), u), 'can_manage_teams');
+    }
+    function canUpdateTeam(ownerId, teamId) {
+      let u = me();
+      let s = scopesOf(ownerId, u);
+      return has(u, s, 'can_manage_teams')
+        || (has(u, s, 'can_manage_own_team_members') && memberOf(u, teamId));
+    }
+
+    match /users/{ownerId}/tickets/{ticketId} {
+      allow read: if inWorkspace(ownerId) && canReadTicket(ownerId);
+      allow create: if inWorkspace(ownerId) && canCreateTicket(ownerId);
+      allow update: if inWorkspace(ownerId) && canUpdateTicket(ownerId);
+      allow delete: if inWorkspace(ownerId) && canDeleteTicket(ownerId);
+
+      match /activity/{activityId} {
+        allow read: if inWorkspace(ownerId) && canReadActivity(ownerId, ticketId);
+        allow create: if inWorkspace(ownerId) && canCreateActivity(ownerId, ticketId);
+        allow update: if inWorkspace(ownerId) && (iAmAdmin() || request.auth.uid == resource.data.get('authorId', ''));
+        allow delete: if inWorkspace(ownerId) && canDeleteActivity();
+      }
+    }
+    function canReadTicket(ownerId) {
+      let u = me();
+      let s = scopesOf(ownerId, u);
+      let team = resource.data.get('teamId', null);
+      return isActiveU(u) && (
+        has(u, s, 'can_view_all_tickets')
+        || scope(u, s, 'can_view_custom_team_tickets', team)
+        || scope(u, s, 'can_view_custom_epic_tickets', resource.data.get('epicId', null))
+        || scopeAny(u, s, 'can_view_custom_label_tickets', resource.data.get('labels', []))
+        || (has(u, s, 'can_view_own_team_tickets') && memberOf(u, team))
+        || (has(u, s, 'can_view_own_tickets') && request.auth.uid == resource.data.get('createdBy', ''))
+        || (has(u, s, 'can_view_assigned_ticket') && request.auth.uid in resource.data.get('assigneeIds', []))
+      );
+    }
+    function canCreateTicket(ownerId) {
+      let u = me();
+      let s = scopesOf(ownerId, u);
+      return isActiveU(u) && (
+        has(u, s, 'can_create_ticket')
+        || (has(u, s, 'can_create_own_team_ticket') && memberOf(u, request.resource.data.get('teamId', null)))
+      );
+    }
+    function canUpdateTicket(ownerId) {
+      let u = me();
+      let s = scopesOf(ownerId, u);
+      let team = resource.data.get('teamId', null);
+      return isActiveU(u) && (
+        has(u, s, 'can_edit_all_tickets')
+        || has(u, s, 'can_move_ticket')
+        || scope(u, s, 'can_edit_custom_team_tickets', team)
+        || (memberOf(u, team) && (
+              has(u, s, 'can_edit_own_team_tickets')
+              || has(u, s, 'can_move_own_team_ticket')
+              || has(u, s, 'can_change_own_team_ticket_workflow')))
+        || (request.auth.uid in resource.data.get('assigneeIds', [])
+            && has(u, s, 'can_change_assigned_ticket_workflow'))
+      );
+    }
+    function canDeleteTicket(ownerId) {
+      let u = me();
+      let s = scopesOf(ownerId, u);
+      let team = resource.data.get('teamId', null);
+      return isActiveU(u) && (
+        has(u, s, 'can_delete_all_tickets')
+        || scope(u, s, 'can_delete_custom_team_tickets', team)
+        || (has(u, s, 'can_delete_own_team_tickets') && memberOf(u, team))
+      );
+    }
+    function canReadActivity(ownerId, ticketId) {
+      let u = me();
+      let s = scopesOf(ownerId, u);
+      let team = get(/databases/$(database)/documents/users/$(ownerId)/tickets/$(ticketId)).data.get('teamId', null);
+      return isActiveU(u) && (
+        has(u, s, 'can_view_all_tickets')
+        || scope(u, s, 'can_view_custom_team_tickets', team)
+        || memberOf(u, team)
+      );
+    }
+    function canCreateActivity(ownerId, ticketId) {
+      let u = me();
+      let s = scopesOf(ownerId, u);
+      let t = get(/databases/$(database)/documents/users/$(ownerId)/tickets/$(ticketId)).data;
+      let team = t.get('teamId', null);
+      return isActiveU(u) && (
+        has(u, s, 'can_comment')
+        || (has(u, s, 'can_comment_own_team_ticket') && memberOf(u, team))
+        || (has(u, s, 'can_comment_assigned_ticket') && request.auth.uid in t.get('assigneeIds', []))
+      );
+    }
+    function canDeleteActivity() {
+      let u = me();
+      return isAdminU(u)
+        || has(u, scopesOf(myWs(), u), 'can_delete_all_comments')
+        || request.auth.uid == resource.data.get('authorId', '');
+    }
+
+    match /users/{ownerId}/epics/{epicId} {
+      allow read: if inWorkspace(ownerId) && isActiveU(me());
+      allow create: if inWorkspace(ownerId) && epicPerm(ownerId, ['can_create_epic']);
+      allow update: if inWorkspace(ownerId) && epicPerm(ownerId, [
+        'can_edit_epic', 'can_assign_teams_to_epic', 'can_assign_custom_teams_to_epic',
+        'can_add_all_tickets_to_epic', 'can_add_custom_team_tickets_to_epic',
+        'can_remove_all_tickets_from_epic', 'can_remove_custom_team_tickets_from_epic']);
+      allow delete: if inWorkspace(ownerId) && epicPerm(ownerId, ['can_remove_epic']);
+    }
+    function epicPerm(ownerId, keys) {
+      let u = me();
+      return isAdminU(u) || (isActiveU(u) && scopesOf(ownerId, u).keys().hasAny(keys));
+    }
+
+    match /users/{ownerId}/sprints/{sprintId} {
+      allow read: if inWorkspace(ownerId) && isActiveU(me());
+      allow create: if inWorkspace(ownerId) && canCreateSprint(ownerId);
+      allow update: if inWorkspace(ownerId) && canWriteSprint(ownerId, [
+        'can_edit_sprint', 'can_edit_custom_team_sprint', 'can_edit_own_team_sprint',
+        'can_add_tickets_to_sprint', 'can_remove_tickets_from_sprint']);
+      allow delete: if inWorkspace(ownerId) && canWriteSprint(ownerId, [
+        'can_delete_sprint', 'can_delete_custom_team_sprint', 'can_delete_own_team_sprint']);
+    }
+    function canCreateSprint(ownerId) {
+      let u = me();
+      let s = scopesOf(ownerId, u);
+      return isActiveU(u) && (
+        has(u, s, 'can_create_sprint')
+        || has(u, s, 'can_create_custom_team_sprint')
+        || (has(u, s, 'can_create_own_team_sprint') && memberOf(u, request.resource.data.get('teamId', null)))
+      );
+    }
+    function canWriteSprint(ownerId, keys) {
+      let u = me();
+      return isAdminU(u) || (isActiveU(u) && scopesOf(ownerId, u).keys().hasAny(keys));
+    }
+
+    // Admin config — statuses, labels, roles (per workspace).
+    match /users/{ownerId}/statuses/{id} {
+      allow read: if inWorkspace(ownerId) && isActiveU(me());
+      allow write: if inWorkspace(ownerId) && configPerm('can_manage_statuses');
+    }
+    match /users/{ownerId}/labels/{id} {
+      allow read: if inWorkspace(ownerId) && isActiveU(me());
+      allow write: if inWorkspace(ownerId) && configPerm('can_manage_labels');
+    }
+    function configPerm(k) {
+      let u = me();
+      return has(u, scopesOf(myWs(), u), k);
+    }
+
+    // Any member of the workspace may read its roles so the app (and these rules)
+    // can resolve their assigned role's permissions. Writes need can_edit_roles.
+    match /users/{ownerId}/roles/{id} {
+      allow read: if inWorkspace(ownerId);
+      allow write: if inWorkspace(ownerId) && configPerm('can_edit_roles');
+    }
+
+    // ─── Permission Catalogue (global, app-wide definitions) ─────────────────
+    match /permissionCatalogue/{catId} {
+      allow read: if authed() && isActiveU(me());
+      allow write: if iAmAdmin();
+    }
+  }
+}
