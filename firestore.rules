@@ -9,14 +9,24 @@ service cloud.firestore {
       return request.auth != null;
     }
 
-    // The requester's own profile doc.
-    function me() {
+    // Pointer/admin doc at users/{uid}. Admins have full profile here;
+    // employees have {workspaceId, role} pointer.
+    function userPointer() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
 
-    // Workspace the requester belongs to (admins: own uid; members: creator's uid).
+    // Full profile: admin → users/{uid}, employee → users/{ws}/employeesData/{uid}.
+    function me() {
+      let ptr = userPointer();
+      let ws = ptr.get('workspaceId', null);
+      return ptr.role == 'admin'
+        ? ptr
+        : get(/databases/$(database)/documents/users/$(ws)/employeesData/$(request.auth.uid)).data;
+    }
+
+    // Workspace the requester belongs to.
     function myWs() {
-      return me().get('workspaceId', null);
+      return userPointer().get('workspaceId', null);
     }
 
     // True when the requester operates inside workspace `ownerId`.
@@ -259,6 +269,14 @@ service cloud.firestore {
     match /users/{ownerId}/roles/{id} {
       allow read: if inWorkspace(ownerId);
       allow write: if inWorkspace(ownerId) && configPerm('can_edit_roles');
+    }
+
+    // ─── Employee profiles (workspace-scoped) ─────────────────────────────────
+    match /users/{ownerId}/employeesData/{uid} {
+      allow read: if inWorkspace(ownerId) && (isActiveU(me()) || request.auth.uid == uid);
+      allow create: if inWorkspace(ownerId) && canManageUsers('can_invite_user', uid);
+      allow update: if inWorkspace(ownerId) && canUpdateUser(uid);
+      allow delete: if inWorkspace(ownerId) && canManageUsers('can_remove_user', uid);
     }
 
     // ─── Permission Catalogue (global, app-wide definitions) ─────────────────
