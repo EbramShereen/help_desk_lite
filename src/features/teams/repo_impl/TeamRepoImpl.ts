@@ -5,7 +5,7 @@ import type { Team, TeamInput, TeamUpdate, TeamEmployee } from '../models/Team';
 import { teamFromDoc, teamToDoc } from '../models/Team';
 
 const TEAMS = 'teams';
-const USERS = 'users';
+const EMPLOYEES = 'employeesData';
 
 export class TeamRepoImpl implements TeamRepo {
   private readonly ds: AppDataSource;
@@ -22,7 +22,7 @@ export class TeamRepoImpl implements TeamRepo {
   }
 
   async listTeamsForUser(userId: string): Promise<Team[]> {
-    const doc = await this.ds.getDocument(USERS, userId);
+    const doc = await this.ds.getDocument(EMPLOYEES, userId);
     const teamIds: string[] = Array.isArray(doc?.teamIds)
       ? (doc!.teamIds as string[])
       : doc?.teamId
@@ -40,7 +40,7 @@ export class TeamRepoImpl implements TeamRepo {
 
   async createTeam(input: TeamInput, managerId: string): Promise<Team> {
     const allUids = [input.teamLeaderId, ...(input.memberIds ?? [])];
-    const userDocs = await Promise.all(allUids.map((uid) => this.ds.getDocument(USERS, uid)));
+    const userDocs = await Promise.all(allUids.map((uid) => this.ds.getDocument(EMPLOYEES, uid)));
 
     const employees: Record<string, { name: string; photoUrl: string | null; role: string }> = {};
     allUids.forEach((uid, i) => {
@@ -115,14 +115,14 @@ export class TeamRepoImpl implements TeamRepo {
   }
 
   private async addTeamToUser(userId: string, teamId: string, addedBy: string): Promise<void> {
-    const doc = await this.ds.getDocument(USERS, userId);
+    const doc = await this.ds.getDocument(EMPLOYEES, userId);
     const existing: string[] = Array.isArray(doc?.teamIds)
       ? (doc!.teamIds as string[])
       : doc?.teamId
         ? [String(doc.teamId)]
         : [];
     const teamIds = [...new Set([...existing, teamId])];
-    await this.ds.updateDocument(USERS, userId, {
+    await this.ds.updateDocument(EMPLOYEES, userId, {
       teamIds,
       teamId: teamIds[0] ?? null,
       teamAddedBy: addedBy || null,
@@ -130,14 +130,14 @@ export class TeamRepoImpl implements TeamRepo {
   }
 
   private async removeTeamFromUser(userId: string, teamId: string): Promise<void> {
-    const doc = await this.ds.getDocument(USERS, userId);
+    const doc = await this.ds.getDocument(EMPLOYEES, userId);
     const existing: string[] = Array.isArray(doc?.teamIds)
       ? (doc!.teamIds as string[])
       : doc?.teamId
         ? [String(doc.teamId)]
         : [];
     const teamIds = existing.filter((id) => id !== teamId);
-    await this.ds.updateDocument(USERS, userId, {
+    await this.ds.updateDocument(EMPLOYEES, userId, {
       teamIds,
       teamId: teamIds[0] ?? null,
     });

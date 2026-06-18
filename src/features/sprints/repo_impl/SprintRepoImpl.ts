@@ -6,7 +6,7 @@ import { sprintFromDoc, sprintToDoc } from '../models/Sprint';
 
 const SPRINTS = 'sprints';
 const TICKETS = 'tickets';
-const USERS = 'users';
+const EMPLOYEES = 'employeesData';
 
 export class SprintRepoImpl implements SprintRepo {
   private readonly ds: AppDataSource;
@@ -122,12 +122,12 @@ export class SprintRepoImpl implements SprintRepo {
   private async addSprintToUsers(sprintId: string, uids: string[]): Promise<void> {
     await Promise.all(
       uids.map(async (uid) => {
-        const doc = await this.ds.getDocument(USERS, uid);
+        const doc = await this.ds.getDocument(EMPLOYEES, uid);
         const existing: string[] = Array.isArray(doc?.assignedSprintIds)
           ? (doc!.assignedSprintIds as string[])
           : [];
         const assignedSprintIds = [...new Set([...existing, sprintId])];
-        await this.ds.updateDocument(USERS, uid, { assignedSprintIds });
+        await this.ds.updateDocument(EMPLOYEES, uid, { assignedSprintIds });
       }),
     );
   }
@@ -135,7 +135,7 @@ export class SprintRepoImpl implements SprintRepo {
   private async removeSprintFromUsers(sprintId: string, uids: string[]): Promise<void> {
     await Promise.all(
       uids.map(async (uid) => {
-        const doc = await this.ds.getDocument(USERS, uid);
+        const doc = await this.ds.getDocument(EMPLOYEES, uid);
         const existing: string[] = Array.isArray(doc?.assignedSprintIds)
           ? (doc!.assignedSprintIds as string[])
           : [];
@@ -144,7 +144,7 @@ export class SprintRepoImpl implements SprintRepo {
         const sprintPerms = Array.isArray(doc?.sprintPermissions)
           ? (doc!.sprintPermissions as Array<{ id: string }>).filter((p) => p.id !== sprintId)
           : [];
-        await this.ds.updateDocument(USERS, uid, {
+        await this.ds.updateDocument(EMPLOYEES, uid, {
           assignedSprintIds,
           sprintPermissions: sprintPerms,
         });

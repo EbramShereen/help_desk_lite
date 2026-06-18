@@ -19,6 +19,7 @@ const WORKSPACE_SCOPED_ROOTS = new Set([
   'sprints',
   'statuses',
   'labels',
+  'employeesData',
 ]);
 
 /**
