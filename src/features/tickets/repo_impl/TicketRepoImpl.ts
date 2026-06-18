@@ -7,7 +7,7 @@ import type { TicketActivity } from '../models/TicketActivity';
 import { activityFromDoc, activityToDoc } from '../models/TicketActivity';
 
 const TICKETS = 'tickets';
-const USERS = 'users';
+const EMPLOYEES = 'employeesData';
 const activityPath = (ticketId: string) => `tickets/${ticketId}/activity`;
 
 export class TicketRepoImpl implements TicketRepo {
@@ -276,12 +276,12 @@ export class TicketRepoImpl implements TicketRepo {
   private async addTicketToUsers(ticketId: string, uids: string[]): Promise<void> {
     await Promise.all(
       uids.map(async (uid) => {
-        const doc = await this.ds.getDocument(USERS, uid);
+        const doc = await this.ds.getDocument(EMPLOYEES, uid);
         const existing: string[] = Array.isArray(doc?.assignedTicketIds)
           ? (doc!.assignedTicketIds as string[])
           : [];
         const assignedTicketIds = [...new Set([...existing, ticketId])];
-        await this.ds.updateDocument(USERS, uid, { assignedTicketIds });
+        await this.ds.updateDocument(EMPLOYEES, uid, { assignedTicketIds });
       }),
     );
   }
@@ -289,12 +289,12 @@ export class TicketRepoImpl implements TicketRepo {
   private async removeTicketFromUsers(ticketId: string, uids: string[]): Promise<void> {
     await Promise.all(
       uids.map(async (uid) => {
-        const doc = await this.ds.getDocument(USERS, uid);
+        const doc = await this.ds.getDocument(EMPLOYEES, uid);
         const existing: string[] = Array.isArray(doc?.assignedTicketIds)
           ? (doc!.assignedTicketIds as string[])
           : [];
         const assignedTicketIds = existing.filter((id) => id !== ticketId);
-        await this.ds.updateDocument(USERS, uid, { assignedTicketIds });
+        await this.ds.updateDocument(EMPLOYEES, uid, { assignedTicketIds });
       }),
     );
   }
