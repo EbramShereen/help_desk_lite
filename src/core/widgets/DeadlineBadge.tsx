@@ -1,5 +1,5 @@
 import { cn } from '../../lib/cn';
-import type { TicketStatus } from '../../features/tickets/models/Ticket';
+import type { TicketStatus } from '../enums/tickets/ticket_status';
 
 const FORTY_EIGHT_HOURS = 48 * 60 * 60 * 1000;
 

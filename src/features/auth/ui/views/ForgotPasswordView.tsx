@@ -5,7 +5,10 @@ import { useTranslation } from 'react-i18next';
 import { AppButton, AppTextField } from '../../../../core/widgets';
 import { AuthLayout } from '../widgets/AuthLayout';
 import { useAuthController } from '../../logic/useAuthController';
-import { forgotPasswordSchema, type ForgotPasswordInput } from '../../models/schemas';
+import {
+  forgotPasswordSchema,
+  type ForgotPasswordInput,
+} from '../../../../core/data/models/request/auth/auth_request';
 
 export default function ForgotPasswordView() {
   const { t } = useTranslation();

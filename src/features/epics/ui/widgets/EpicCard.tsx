@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { cn } from '../../../../lib/cn';
-import type { Epic } from '../../models/Epic';
+import type { Epic } from '../../../../core/data/models/response/epics/epic_response';
 
 interface EpicCardProps {
   epic: Epic;

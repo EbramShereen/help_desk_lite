@@ -3,12 +3,13 @@ import { useInjected } from '../../../core/di/DependencyProvider';
 import { TOKENS } from '../../../core/di/tokens';
 import { useAppDispatch, useAppSelector } from '../../../app/hooks';
 import { setUser } from './authSlice';
+import { unwrap } from '../../../core/models/Result';
 import type {
   LoginInput,
   SignUpInput,
   ForgotPasswordInput,
   ResetPasswordInput,
-} from '../models/schemas';
+} from '../../../core/data/models/request/auth/auth_request';
 
 export function useAuthController() {
   const repo = useInjected(TOKENS.AuthRepo);
@@ -16,31 +17,31 @@ export function useAuthController() {
   const { user, status } = useAppSelector((s) => s.auth);
 
   const login = useMutation({
-    mutationFn: ({ email, password }: LoginInput) => repo.signIn(email, password),
+    mutationFn: ({ email, password }: LoginInput) => unwrap(repo.signIn(email, password)),
     onSuccess: (authUser) => dispatch(setUser(authUser)),
   });
 
   const signup = useMutation({
     mutationFn: ({ displayName, email, password }: SignUpInput) =>
-      repo.signUp({ displayName, email, password }),
+      unwrap(repo.signUp({ displayName, email, password })),
     onSuccess: (authUser) => dispatch(setUser(authUser)),
   });
 
   const logout = useMutation({
-    mutationFn: () => repo.signOut(),
+    mutationFn: () => unwrap(repo.signOut()),
   });
 
   const sendReset = useMutation({
-    mutationFn: ({ email }: ForgotPasswordInput) => repo.sendPasswordReset(email),
+    mutationFn: ({ email }: ForgotPasswordInput) => unwrap(repo.sendPasswordReset(email)),
   });
 
   const verifyCode = useMutation({
-    mutationFn: (oobCode: string) => repo.verifyResetCode(oobCode),
+    mutationFn: (oobCode: string) => unwrap(repo.verifyResetCode(oobCode)),
   });
 
   const confirmReset = useMutation({
     mutationFn: ({ oobCode, password }: ResetPasswordInput & { oobCode: string }) =>
-      repo.confirmPasswordReset(oobCode, password),
+      unwrap(repo.confirmPasswordReset(oobCode, password)),
   });
 
   return { user, status, login, signup, logout, sendReset, verifyCode, confirmReset };

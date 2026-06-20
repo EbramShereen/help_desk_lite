@@ -1,6 +1,6 @@
 ---
 name: helpdesk-backend
-description: Build the data/domain layers of a HelpDesk Lite feature — models (+zod), repo interface, repo_impl over AppDataSource, DI token registration, and new Firebase handlers. Use for backend-epic tickets.
+description: Build the data/domain layers of a HelpDesk Lite feature — enums, models (+zod, response/request split), repo interface + impl over AppDataSource, DI token registration, and new Firebase handlers. Use for backend-epic tickets.
 ---
 
 # HelpDesk Lite — Backend Layer
@@ -10,40 +10,60 @@ Firebase directly — they go through the repo, which goes through `AppDataSourc
 
 ## Order
 
-`models -> (extend AppDataSource if a new op is needed) -> repo interface -> repo_impl -> register DI token`
+`enums (core/enums) -> models (core/data/models response+request) -> (extend AppDataSource if a new op is needed) -> repo interface + impl (one repo/ folder) -> register DI token`
 
-## 1. Model — `src/features/<feature>/models/<Entity>.ts`
+## 1a. Enums — `src/core/enums/<feature>/<enum_name>.ts` (ONE per file)
 
-- A TS `interface`/`type` for the domain entity (typed, no `any`).
-- A `zod` schema for validation + `z.infer` for the input type.
-- Mappers: `fromDoc(doc: DocData): Entity` and `toDoc(input): Record<string, unknown>`.
-  Never leak Firestore types upward; map from/to `DocData` (`src/core/firebase/FirestoreHandler.ts`).
+Extract any domain enum/union first. snake_case file, single `as const` array +
+derived type (or single string-union). Example `core/enums/tickets/ticket_status.ts`:
 
 ```ts
-import { z } from 'zod';
-import type { DocData } from '../../../core/firebase/FirestoreHandler';
+export const TICKET_STATUSES = ['open', 'in_progress', 'closed'] as const;
+export type TicketStatus = (typeof TICKET_STATUSES)[number];
+```
+
+## 1b. Models — split by direction under `src/core/data/models`
+
+- Response: `response/<feature>/<entity>_response.ts` — domain `interface` +
+  `fromDoc(doc: DocData): Entity` + parse/label helpers.
+- Request: `request/<feature>/<entity>_request.ts` — `zod` schema + `z.infer` input
+  type + `toDoc(input): Record<string, unknown>`.
+- Never leak Firestore types upward; map from/to `DocData`
+  (`src/core/data/firebase/FirestoreHandler.ts`). Import enum types from `core/enums`.
+
+```ts
+// core/data/models/response/tickets/ticket_response.ts
+import type { DocData } from '../../../firebase/FirestoreHandler';
+import type { TicketStatus } from '../../../../enums/tickets/ticket_status';
 
 export interface Ticket {
   id: string;
   title: string;
-  status: 'open' | 'in_progress' | 'closed';
+  status: TicketStatus;
   createdAt: number;
 }
-
-export const ticketInputSchema = z.object({
-  title: z.string().min(3),
-  status: z.enum(['open', 'in_progress', 'closed']).default('open'),
-});
-export type TicketInput = z.infer<typeof ticketInputSchema>;
 
 export function ticketFromDoc(doc: DocData): Ticket {
   return {
     id: doc.id,
     title: String(doc.title ?? ''),
-    status: (doc.status as Ticket['status']) ?? 'open',
+    status: (doc.status as TicketStatus) ?? 'open',
     createdAt: Number(doc.createdAt ?? 0),
   };
 }
+```
+
+```ts
+// core/data/models/request/tickets/ticket_request.ts
+import { z } from 'zod';
+import { TICKET_STATUSES } from '../../../../enums/tickets/ticket_status';
+
+export const ticketInputSchema = z.object({
+  title: z.string().min(3),
+  status: z.enum(TICKET_STATUSES).default('open'),
+});
+export type TicketInput = z.infer<typeof ticketInputSchema>;
+
 export function ticketToDoc(input: TicketInput): Record<string, unknown> {
   return { ...input, createdAt: Date.now() };
 }
@@ -56,7 +76,7 @@ export function ticketToDoc(input: TicketInput): Record<string, unknown> {
 them with a `collectionPath`. Add a method only for a genuinely new capability,
 and add it to BOTH `AppDataSource.ts` and `AppDataSourceImpl.ts` (delegating to a
 handler). For a brand-new Firebase service (e.g. Storage), add a new handler pair
-in `src/core/firebase/` (interface + impl) wired through the datasource — never
+in `src/core/data/firebase/` (interface + impl) wired through the datasource — never
 call the SDK from a feature.
 
 ## 3. Repo interface — `src/features/<feature>/repo/<Entity>Repo.ts`
@@ -64,7 +84,8 @@ call the SDK from a feature.
 Domain-shaped API the logic layer consumes. Returns domain models, not DocData.
 
 ```ts
-import type { Ticket, TicketInput } from '../models/Ticket';
+import type { Ticket } from '../../../core/data/models/response/tickets/ticket_response';
+import type { TicketInput } from '../../../core/data/models/request/tickets/ticket_request';
 
 export interface TicketRepo {
   list(): Promise<Ticket[]>;
@@ -75,16 +96,23 @@ export interface TicketRepo {
 }
 ```
 
-## 4. Repo impl — `src/features/<feature>/repo_impl/<Entity>RepoImpl.ts`
+## 4. Repo impl — `src/features/<feature>/repo/<Entity>RepoImpl.ts` (same folder as the interface)
 
 Constructor takes `AppDataSource`. Maps DocData<->domain via the model mappers.
 Errors are already normalized to `AppError` inside the datasource/handlers — do
 NOT catch-and-swallow; let `AppError` propagate to React Query.
 
 ```ts
-import type { AppDataSource } from '../../../core/datasource/AppDataSource';
-import type { TicketRepo } from '../repo/TicketRepo';
-import { ticketFromDoc, ticketToDoc, type Ticket, type TicketInput } from '../models/Ticket';
+import type { AppDataSource } from '../../../core/data/datasource/AppDataSource';
+import type { TicketRepo } from './TicketRepo';
+import {
+  ticketFromDoc,
+  type Ticket,
+} from '../../../core/data/models/response/tickets/ticket_response';
+import {
+  ticketToDoc,
+  type TicketInput,
+} from '../../../core/data/models/request/tickets/ticket_request';
 
 const PATH = 'tickets';
 

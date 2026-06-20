@@ -21,7 +21,7 @@ createRoot(document.getElementById('root')!).render(
         <DependencyProvider>
           <AppThemeProvider>
             <AuthBootstrap>
-              <BrowserRouter>
+              <BrowserRouter basename="/help_desk_lite">
                 <App />
               </BrowserRouter>
             </AuthBootstrap>

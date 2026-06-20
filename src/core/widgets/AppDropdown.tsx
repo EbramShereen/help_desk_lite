@@ -39,6 +39,7 @@ export const AppDropdown = forwardRef<HTMLSelectElement, AppDropdownProps>(funct
         className={cn(
           'h-11 w-full rounded-control border bg-surface px-3.5 text-sm text-content outline-none',
           'transition-[border-color,box-shadow] duration-200',
+          'bg-surface text-content',
           error
             ? 'border-danger focus:shadow-focus'
             : 'border-surface-border focus:border-primary focus:shadow-focus',
@@ -48,16 +49,22 @@ export const AppDropdown = forwardRef<HTMLSelectElement, AppDropdownProps>(funct
         {...rest}
       >
         {placeholder && (
-          <option value="" disabled>
+          <option value="" disabled className="bg-surface text-content">
             {placeholder}
           </option>
         )}
         {options.map((opt) => (
-          <option key={opt.value} value={opt.value} disabled={opt.disabled}>
+          <option
+            key={opt.value}
+            value={opt.value}
+            disabled={opt.disabled}
+            className="bg-surface text-content"
+          >
             {opt.label}
           </option>
         ))}
       </select>
+
       {error && <p className="text-xs text-danger">{error}</p>}
     </div>
   );

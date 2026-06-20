@@ -3,10 +3,11 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInjected } from '../../../core/di/DependencyProvider';
 import { TOKENS } from '../../../core/di/tokens';
 import { useTicketController } from './useTicketController';
-import { useAdminConfigController } from '../../admin/logic/useAdminConfigController';
+import { useWorkflowController } from '../../workflow/logic/useWorkflowController';
+import { unwrap } from '../../../core/models/Result';
 import type { TicketFilters } from '../repo/TicketRepo';
-import type { Ticket } from '../models/Ticket';
-import type { WorkflowStatus } from '../../admin/models/WorkflowStatus';
+import type { Ticket } from '../../../core/data/models/response/tickets/ticket_response';
+import type { WorkflowStatus } from '../../../core/data/models/response/admin/workflow_status_response';
 
 const TICKETS_KEY = 'tickets';
 
@@ -24,7 +25,7 @@ export function useBoardController(filters?: TicketFilters) {
   const repo = useInjected(TOKENS.TicketRepo);
   const qc = useQueryClient();
   const { ticketsQuery } = useTicketController(filters);
-  const { statuses } = useAdminConfigController();
+  const { statuses } = useWorkflowController();
 
   const tickets = useMemo(() => ticketsQuery.data ?? [], [ticketsQuery.data]);
 
@@ -39,7 +40,7 @@ export function useBoardController(filters?: TicketFilters) {
 
   const moveStatus = useMutation({
     mutationFn: ({ ticketId, statusId }: { ticketId: string; statusId: string }) =>
-      repo.updateTicketStatusId(ticketId, statusId),
+      unwrap(repo.updateTicketStatusId(ticketId, statusId)),
     onSuccess: () => qc.invalidateQueries({ queryKey: [TICKETS_KEY] }),
   });
 

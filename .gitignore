@@ -13,6 +13,11 @@ dist-ssr
 # Local env files
 *.local
 
+# Firebase service-account keys — NEVER commit. Goes in Vercel env (FIREBASE_SA_KEY).
+*serviceAccount*.json
+*-adminsdk-*.json
+serviceAccountKey*.json
+
 # Editor dirs
 .vscode/*
 !.vscode/extensions.json

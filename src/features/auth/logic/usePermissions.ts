@@ -3,8 +3,10 @@ import { useQuery } from '@tanstack/react-query';
 import { useInjected } from '../../../core/di/DependencyProvider';
 import { TOKENS } from '../../../core/di/tokens';
 import { useAppSelector } from '../../../app/hooks';
-import { resolvePermissions } from '../models/AuthUser';
-import type { Permission, PermissionGrant } from '../../admin/models/Permission';
+import { resolvePermissions } from '../../../core/data/models/response/auth/auth_user_response';
+import { unwrap } from '../../../core/models/Result';
+import type { Permission } from '../../../core/enums/admin/permission';
+import type { PermissionGrant } from '../../../core/data/models/response/admin/permission_response';
 
 /**
  * Resolves the current user's effective permission grants and exposes helpers.
@@ -13,12 +15,12 @@ import type { Permission, PermissionGrant } from '../../admin/models/Permission'
  *   OR have an empty scopeIds array (unrestricted).
  */
 export function usePermissions() {
-  const repo = useInjected(TOKENS.AdminConfigRepo);
+  const repo = useInjected(TOKENS.RoleRepo);
   const user = useAppSelector((s) => s.auth.user);
 
   const customRoleQuery = useQuery({
     queryKey: ['customRole', user?.customRoleId],
-    queryFn: () => repo.getCustomRole(user!.customRoleId!),
+    queryFn: () => unwrap(repo.getCustomRole(user!.customRoleId!)),
     enabled: !!user?.customRoleId,
   });
 

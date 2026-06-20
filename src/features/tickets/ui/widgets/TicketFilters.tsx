@@ -3,12 +3,12 @@ import { AppDropdown } from '../../../../core/widgets/AppDropdown';
 import { AppButton } from '../../../../core/widgets/AppButton';
 import { useAppDispatch, useAppSelector } from '../../../../app/hooks';
 import { setStatusFilter, setPriorityFilter, resetFilters } from '../../logic/ticketsSlice';
+import { TICKET_STATUSES } from '../../../../core/enums/tickets/ticket_status';
+import { TICKET_PRIORITIES } from '../../../../core/enums/tickets/ticket_priority';
 import {
-  TICKET_STATUSES,
-  TICKET_PRIORITIES,
   statusLabels,
   priorityLabels,
-} from '../../models/Ticket';
+} from '../../../../core/data/models/response/tickets/ticket_response';
 
 export function TicketFilters() {
   const { t } = useTranslation();

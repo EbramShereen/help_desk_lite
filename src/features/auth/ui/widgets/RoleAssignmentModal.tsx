@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AppButton, AppDropdown } from '../../../../core/widgets';
-import { ROLES, type Role, roleLabel } from '../../models/Role';
-import type { CustomRole } from '../../../admin/models/CustomRole';
+import { ROLES, type Role } from '../../../../core/enums/auth/role';
+import { roleLabel } from '../../../../core/data/models/response/auth/role_response';
+import type { CustomRole } from '../../../../core/data/models/response/admin/custom_role_response';
 
 interface RoleAssignmentModalProps {
   userName: string;

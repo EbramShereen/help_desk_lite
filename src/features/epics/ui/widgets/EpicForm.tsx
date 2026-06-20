@@ -4,7 +4,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { AppTextField } from '../../../../core/widgets/AppTextField';
 import { AppTextArea } from '../../../../core/widgets/AppTextArea';
 import { AppButton } from '../../../../core/widgets/AppButton';
-import { epicInputSchema, type EpicInput } from '../../models/Epic';
+import {
+  epicInputSchema,
+  type EpicInput,
+} from '../../../../core/data/models/request/epics/epic_request';
 
 interface EpicFormProps {
   onSubmit: (data: EpicInput) => void;

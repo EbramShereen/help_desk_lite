@@ -6,7 +6,10 @@ import { useTranslation } from 'react-i18next';
 import { AppButton, AppTextField } from '../../../../core/widgets';
 import { AuthLayout } from '../widgets/AuthLayout';
 import { useAuthController } from '../../logic/useAuthController';
-import { signUpSchema, type SignUpInput } from '../../models/schemas';
+import {
+  signUpSchema,
+  type SignUpInput,
+} from '../../../../core/data/models/request/auth/auth_request';
 import type { AppError } from '../../../../core/errors/AppError';
 
 export default function SignUpView() {

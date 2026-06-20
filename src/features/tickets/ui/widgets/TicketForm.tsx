@@ -9,13 +9,13 @@ import { AppDatePicker } from '../../../../core/widgets/AppDatePicker';
 import { AppButton } from '../../../../core/widgets/AppButton';
 import { AppMultiSelect } from '../../../../core/widgets/AppMultiSelect';
 import { AppTagInput } from '../../../../core/widgets/AppTagInput';
+import { TICKET_PRIORITIES } from '../../../../core/enums/tickets/ticket_priority';
+import { TICKET_STATUSES } from '../../../../core/enums/tickets/ticket_status';
 import {
-  TICKET_PRIORITIES,
-  TICKET_STATUSES,
   statusLabels,
   priorityLabels,
-  type TicketInput,
-} from '../../models/Ticket';
+} from '../../../../core/data/models/response/tickets/ticket_response';
+import type { TicketInput } from '../../../../core/data/models/request/tickets/ticket_request';
 
 const ticketFormSchema = z.object({
   title: z.string().min(3, 'Title must be at least 3 characters'),

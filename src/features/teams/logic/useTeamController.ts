@@ -2,7 +2,9 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInjected } from '../../../core/di/DependencyProvider';
 import { TOKENS } from '../../../core/di/tokens';
 import { useAppSelector } from '../../../app/hooks';
-import type { TeamInput, TeamUpdate, TeamEmployee } from '../models/Team';
+import { unwrap } from '../../../core/models/Result';
+import type { TeamInput, TeamUpdate } from '../../../core/data/models/request/teams/team_request';
+import type { TeamEmployee } from '../../../core/data/models/response/teams/team_response';
 
 const TEAMS_KEY = 'teams';
 
@@ -13,21 +15,23 @@ export function useTeamController(managerId?: string) {
 
   const teamsQuery = useQuery({
     queryKey: [TEAMS_KEY, managerId],
-    queryFn: () => repo.listTeams(managerId),
+    queryFn: () => unwrap(repo.listTeams(managerId)),
+    select: (result) => result.items,
   });
 
   const createTeam = useMutation({
-    mutationFn: (input: TeamInput) => repo.createTeam(input, user!.uid),
+    mutationFn: (input: TeamInput) => unwrap(repo.createTeam(input, user!.uid)),
     onSuccess: () => qc.invalidateQueries({ queryKey: [TEAMS_KEY] }),
   });
 
   const updateTeam = useMutation({
-    mutationFn: ({ id, patch }: { id: string; patch: TeamUpdate }) => repo.updateTeam(id, patch),
+    mutationFn: ({ id, patch }: { id: string; patch: TeamUpdate }) =>
+      unwrap(repo.updateTeam(id, patch)),
     onSuccess: () => qc.invalidateQueries({ queryKey: [TEAMS_KEY] }),
   });
 
   const deleteTeam = useMutation({
-    mutationFn: (id: string) => repo.deleteTeam(id),
+    mutationFn: (id: string) => unwrap(repo.deleteTeam(id)),
     onSuccess: () => qc.invalidateQueries({ queryKey: [TEAMS_KEY] }),
   });
 
@@ -40,7 +44,7 @@ export function useTeamController(managerId?: string) {
       teamId: string;
       userId: string;
       employee: TeamEmployee;
-    }) => repo.addMember(teamId, userId, employee),
+    }) => unwrap(repo.addMember(teamId, userId, employee)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [TEAMS_KEY] });
       qc.invalidateQueries({ queryKey: ['members'] });
@@ -49,7 +53,7 @@ export function useTeamController(managerId?: string) {
 
   const removeMember = useMutation({
     mutationFn: ({ teamId, userId }: { teamId: string; userId: string }) =>
-      repo.removeMember(teamId, userId),
+      unwrap(repo.removeMember(teamId, userId)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [TEAMS_KEY] });
       qc.invalidateQueries({ queryKey: ['members'] });
@@ -65,7 +69,7 @@ export function useTeamController(managerId?: string) {
       teamId: string;
       userId: string;
       employee: TeamEmployee;
-    }) => repo.setTeamLeader(teamId, userId, employee),
+    }) => unwrap(repo.setTeamLeader(teamId, userId, employee)),
     onSuccess: () => qc.invalidateQueries({ queryKey: [TEAMS_KEY] }),
   });
 
@@ -87,12 +91,12 @@ export function useTeamDetailController(teamId: string) {
 
   const teamQuery = useQuery({
     queryKey: [TEAMS_KEY, teamId],
-    queryFn: () => repo.getTeam(teamId),
+    queryFn: () => unwrap(repo.getTeam(teamId)),
     enabled: !!teamId,
   });
 
   const updateTeam = useMutation({
-    mutationFn: (patch: TeamUpdate) => repo.updateTeam(teamId, patch),
+    mutationFn: (patch: TeamUpdate) => unwrap(repo.updateTeam(teamId, patch)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [TEAMS_KEY, teamId] });
       qc.invalidateQueries({ queryKey: [TEAMS_KEY] });

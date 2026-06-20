@@ -1,9 +1,9 @@
 import type {
   AuthUser,
   EntityPermission,
-  EntityPermissionType,
-  FeatureKey,
-} from '../features/auth/models/AuthUser';
+} from '../core/data/models/response/auth/auth_user_response';
+import type { EntityPermissionType } from '../core/enums/auth/entity_permission_type';
+import type { FeatureKey } from '../core/enums/auth/feature_key';
 
 /** Returns true if the user can access the given page/feature. Admin bypasses all checks. */
 export function canAccessFeature(user: AuthUser, feature: FeatureKey): boolean {

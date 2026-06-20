@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { usePermissions } from './usePermissions';
 import { useAppSelector } from '../../../app/hooks';
-import type { PermissionGrant } from '../../admin/models/Permission';
+import type { PermissionGrant } from '../../../core/data/models/response/admin/permission_response';
 import type { TicketViewScope } from '../../tickets/repo/TicketRepo';
 
 /**

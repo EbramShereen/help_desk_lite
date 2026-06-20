@@ -1,5 +1,6 @@
 import { AppBadge, type AppBadgeProps } from '../../../../core/widgets';
-import { type Role, roleLabel } from '../../models/Role';
+import type { Role } from '../../../../core/enums/auth/role';
+import { roleLabel } from '../../../../core/data/models/response/auth/role_response';
 
 const roleTone: Record<Role, AppBadgeProps['tone']> = {
   pending: 'warning',

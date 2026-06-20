@@ -4,7 +4,7 @@ import { StatusBadge } from '../../../../core/widgets/StatusBadge';
 import { PriorityBadge } from '../../../../core/widgets/PriorityBadge';
 import { DeadlineBadge } from '../../../../core/widgets/DeadlineBadge';
 import { AppBadge } from '../../../../core/widgets/AppBadge';
-import type { Ticket } from '../../models/Ticket';
+import type { Ticket } from '../../../../core/data/models/response/tickets/ticket_response';
 
 export function TicketRow({ ticket, now }: { ticket: Ticket; now: number }) {
   const navigate = useNavigate();

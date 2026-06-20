@@ -6,7 +6,7 @@ import { AppCard } from '../../../../core/widgets/AppCard';
 import { AppButton } from '../../../../core/widgets/AppButton';
 import { ConfirmDialog } from '../../../../core/widgets/ConfirmDialog';
 import { EpicForm } from '../widgets/EpicForm';
-import type { EpicInput } from '../../models/Epic';
+import type { EpicInput } from '../../../../core/data/models/request/epics/epic_request';
 
 export default function EpicCreateView() {
   const { t } = useTranslation();

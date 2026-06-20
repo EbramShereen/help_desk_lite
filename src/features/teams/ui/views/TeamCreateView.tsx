@@ -5,11 +5,12 @@ import { useQuery } from '@tanstack/react-query';
 import { useTeamController } from '../../logic/useTeamController';
 import { useInjected } from '../../../../core/di/DependencyProvider';
 import { TOKENS } from '../../../../core/di/tokens';
+import { unwrap } from '../../../../core/models/Result';
 import { AppCard } from '../../../../core/widgets/AppCard';
 import { AppButton } from '../../../../core/widgets/AppButton';
 import { ConfirmDialog } from '../../../../core/widgets/ConfirmDialog';
 import { TeamForm } from '../widgets/TeamForm';
-import type { TeamInput } from '../../models/Team';
+import type { TeamInput } from '../../../../core/data/models/request/teams/team_request';
 
 export default function TeamCreateView() {
   const { t } = useTranslation();
@@ -18,7 +19,8 @@ export default function TeamCreateView() {
   const authRepo = useInjected(TOKENS.AuthRepo);
   const usersQuery = useQuery({
     queryKey: ['admin', 'users'],
-    queryFn: () => authRepo.listUsers(),
+    queryFn: () => unwrap(authRepo.listUsers()),
+    select: (result) => result.items,
   });
 
   const allUsers = useMemo(

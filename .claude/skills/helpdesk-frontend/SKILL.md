@@ -21,7 +21,7 @@ state + mutations. UI state (modals, filters) is local `useState` or a Redux sli
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInjected } from '../../../core/di/DependencyProvider';
 import { TOKENS } from '../../../core/di/tokens';
-import type { TicketInput } from '../models/Ticket';
+import type { TicketInput } from '../../../core/data/models/request/tickets/ticket_request';
 
 export function useTicketController() {
   const repo = useInjected(TOKENS.Ticket);

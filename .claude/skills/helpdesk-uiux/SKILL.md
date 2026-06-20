@@ -38,7 +38,7 @@ composites (e.g. `TicketCard`) live in `features/<feature>/ui/widgets/`.
 ```tsx
 import { cn } from '../../../lib/cn';
 import { AppCard, AppBadge } from '../../../core/widgets';
-import type { Ticket } from '../models/Ticket';
+import type { Ticket } from '../../../../core/data/models/response/tickets/ticket_response';
 
 export function TicketCard({ ticket, onOpen }: { ticket: Ticket; onOpen: (id: string) => void }) {
   return (

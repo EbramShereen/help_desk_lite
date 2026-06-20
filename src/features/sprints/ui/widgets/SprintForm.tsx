@@ -5,7 +5,7 @@ import { z } from 'zod';
 import { AppTextField } from '../../../../core/widgets/AppTextField';
 import { AppDatePicker } from '../../../../core/widgets/AppDatePicker';
 import { AppButton } from '../../../../core/widgets/AppButton';
-import type { SprintInput } from '../../models/Sprint';
+import type { SprintInput } from '../../../../core/data/models/request/sprints/sprint_request';
 
 const sprintFormSchema = z.object({
   name: z.string().min(3, 'Sprint name must be at least 3 characters'),

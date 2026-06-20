@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import type { Ticket } from '../../models/Ticket';
+import type { Ticket } from '../../../../core/data/models/response/tickets/ticket_response';
 
 export function OverdueBanner({ tickets, now }: { tickets: Ticket[]; now: number }) {
   const overdueCount = useMemo(

@@ -1,5 +1,6 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import type { TicketStatus, TicketPriority } from '../models/Ticket';
+import type { TicketStatus } from '../../../core/enums/tickets/ticket_status';
+import type { TicketPriority } from '../../../core/enums/tickets/ticket_priority';
 
 interface TicketsUIState {
   search: string;

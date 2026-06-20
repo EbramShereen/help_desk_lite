@@ -8,7 +8,7 @@ import {
 } from '../../../../core/widgets';
 import { useAppSelector } from '../../../../app/hooks';
 import { usePreferences } from '../../../preferences/usePreferences';
-import { roleLabel } from '../../models/Role';
+import { roleLabel } from '../../../../core/data/models/response/auth/role_response';
 
 function Field({ label, value }: { label: string; value: string }) {
   return (

@@ -4,7 +4,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { AppTextField } from '../../../../core/widgets/AppTextField';
 import { AppDropdown } from '../../../../core/widgets/AppDropdown';
 import { AppButton } from '../../../../core/widgets/AppButton';
-import { subtaskSchema, type SubtaskInput } from '../../models/Ticket';
+import {
+  subtaskSchema,
+  type SubtaskInput,
+} from '../../../../core/data/models/request/tickets/ticket_request';
 
 interface SubTicketFormProps {
   teamMembers: { label: string; value: string }[];

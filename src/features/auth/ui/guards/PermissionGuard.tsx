@@ -1,6 +1,6 @@
 import { Navigate, Outlet } from 'react-router-dom';
 import { usePermissions } from '../../logic/usePermissions';
-import type { Permission } from '../../../admin/models/Permission';
+import type { Permission } from '../../../../core/enums/admin/permission';
 
 /**
  * Permission-based route guard (additive alongside RoleGuard). Renders children

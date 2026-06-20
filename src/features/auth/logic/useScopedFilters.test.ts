@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { deriveTicketViewScope } from './useScopedFilters';
-import type { PermissionGrant } from '../../admin/models/Permission';
+import type { PermissionGrant } from '../../../core/data/models/response/admin/permission_response';
 
 const g = (key: string, scopeIds: string[] = []): PermissionGrant =>
   ({ key, scopeIds }) as PermissionGrant;

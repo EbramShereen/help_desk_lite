@@ -1,4 +1,4 @@
-import type { Permission } from '../features/admin/models/Permission';
+import type { Permission } from '../core/enums/admin/permission';
 
 /**
  * Single source of truth for which permissions unlock each top-level
@@ -50,6 +50,7 @@ export const NAV_ACCESS = {
   teamProgress: ['can_view_board_custom_teams', 'can_view_board_all_teams'],
   roles: ['can_edit_roles'],
   workflow: ['can_manage_statuses', 'can_manage_labels'],
+  quotes: ['can_manage_quotes'],
 } as const satisfies Record<string, readonly Permission[]>;
 
 /**

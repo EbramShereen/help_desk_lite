@@ -1,6 +1,6 @@
 import { AppCard, PriorityBadge, AvatarStack } from '../../../../core/widgets';
 import type { AvatarPerson } from '../../../../core/widgets';
-import type { Ticket } from '../../models/Ticket';
+import type { Ticket } from '../../../../core/data/models/response/tickets/ticket_response';
 
 export interface TicketCardProps {
   ticket: Ticket;

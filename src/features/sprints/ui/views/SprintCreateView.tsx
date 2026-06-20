@@ -7,7 +7,7 @@ import { AppCard } from '../../../../core/widgets/AppCard';
 import { AppButton } from '../../../../core/widgets/AppButton';
 import { ConfirmDialog } from '../../../../core/widgets/ConfirmDialog';
 import { SprintForm } from '../widgets/SprintForm';
-import type { SprintInput } from '../../models/Sprint';
+import type { SprintInput } from '../../../../core/data/models/request/sprints/sprint_request';
 
 export default function SprintCreateView() {
   const { t } = useTranslation();

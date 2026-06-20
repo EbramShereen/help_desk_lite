@@ -1,5 +1,5 @@
 import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
-import type { AuthUser } from '../models/AuthUser';
+import type { AuthUser } from '../../../core/data/models/response/auth/auth_user_response';
 
 export type AuthStatus = 'idle' | 'loading' | 'authenticated' | 'unauthenticated';
 

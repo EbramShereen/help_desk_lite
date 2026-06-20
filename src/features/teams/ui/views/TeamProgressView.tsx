@@ -4,7 +4,7 @@ import { useTicketController } from '../../../tickets/logic/useTicketController'
 import { useTeamMembersController } from '../../logic/useTeamMembersController';
 import { AppCard } from '../../../../core/widgets/AppCard';
 import { ProgressBar } from '../../../tickets/ui/widgets/ProgressBar';
-import type { Ticket } from '../../../tickets/models/Ticket';
+import type { Ticket } from '../../../../core/data/models/response/tickets/ticket_response';
 
 interface MemberStats {
   name: string;

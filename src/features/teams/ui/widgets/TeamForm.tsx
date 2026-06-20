@@ -5,7 +5,10 @@ import { AppTextField } from '../../../../core/widgets/AppTextField';
 import { AppDropdown } from '../../../../core/widgets/AppDropdown';
 import { AppMultiSelect } from '../../../../core/widgets/AppMultiSelect';
 import { AppButton } from '../../../../core/widgets/AppButton';
-import { teamInputSchema, type TeamInput } from '../../models/Team';
+import {
+  teamInputSchema,
+  type TeamInput,
+} from '../../../../core/data/models/request/teams/team_request';
 
 interface TeamFormProps {
   leaderOptions: { label: string; value: string }[];

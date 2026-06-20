@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { AppButton } from '../../../../core/widgets';
 import { cn } from '../../../../lib/cn';
-import type { TicketActivity } from '../../models/TicketActivity';
+import type { TicketActivity } from '../../../../core/data/models/response/tickets/activity_response';
 
 const EMOJIS = ['👍', '🎉', '❤️', '👀'];
 

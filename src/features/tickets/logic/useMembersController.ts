@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useInjected } from '../../../core/di/DependencyProvider';
 import { TOKENS } from '../../../core/di/tokens';
 import { useTeamMembersController } from '../../teams/logic/useTeamMembersController';
+import { unwrap } from '../../../core/models/Result';
 
 export function useMembersController(teamId?: string) {
   const teamScoped = useTeamMembersController(teamId);
@@ -10,8 +11,9 @@ export function useMembersController(teamId?: string) {
   const authRepo = useInjected(TOKENS.AuthRepo);
   const allUsersQuery = useQuery({
     queryKey: ['members'],
-    queryFn: () => authRepo.listUsers(),
+    queryFn: () => unwrap(authRepo.listUsers()),
     enabled: !teamId,
+    select: (result) => result.items,
   });
 
   const fallbackOptions = useMemo(

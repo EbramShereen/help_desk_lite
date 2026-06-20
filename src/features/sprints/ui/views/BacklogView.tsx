@@ -12,10 +12,10 @@ import {
 import { useBacklogController } from '../../logic/useBacklogController';
 import { useMembersController } from '../../../tickets/logic/useMembersController';
 import { useEpicController } from '../../../epics/logic/useEpicController';
-import { useAdminConfigController } from '../../../admin/logic/useAdminConfigController';
+import { useLabelController } from '../../../labels/logic/useLabelController';
 import { usePermissions } from '../../../auth/logic/usePermissions';
 import { TicketCard } from '../../../tickets/ui/widgets/TicketCard';
-import type { Ticket } from '../../../tickets/models/Ticket';
+import type { Ticket } from '../../../../core/data/models/response/tickets/ticket_response';
 
 const BACKLOG_ZONE = 'backlog';
 
@@ -31,7 +31,7 @@ export default function BacklogView() {
   const { sprintGroups, backlog, isLoading, error, moveTicket } = useBacklogController();
   const { memberOptions } = useMembersController();
   const { epicsQuery } = useEpicController();
-  const { labels } = useAdminConfigController();
+  const { labels } = useLabelController();
   const { canAny } = usePermissions();
   // Dragging here moves tickets in/out of sprints — gate on the sprint membership perms.
   const canMove = canAny(

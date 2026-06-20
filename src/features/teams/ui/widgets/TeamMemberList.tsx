@@ -1,6 +1,7 @@
 import { AppButton } from '../../../../core/widgets/AppButton';
 import { AppBadge } from '../../../../core/widgets/AppBadge';
-import type { TeamEmployee, TeamRole } from '../../models/Team';
+import type { TeamEmployee } from '../../../../core/data/models/response/teams/team_response';
+import type { TeamRole } from '../../../../core/enums/teams/team_role';
 
 const teamRoleLabel: Record<TeamRole, string> = {
   team_leader: 'Team Leader',

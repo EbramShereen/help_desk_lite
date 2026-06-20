@@ -14,7 +14,8 @@ import { DeadlineBadge } from '../../../../core/widgets/DeadlineBadge';
 import { ConfirmDialog } from '../../../../core/widgets/ConfirmDialog';
 import { SubTicketList } from '../widgets/SubTicketList';
 import { ActivityTimeline } from '../widgets/ActivityTimeline';
-import { TICKET_STATUSES, statusLabels, type TicketStatus } from '../../models/Ticket';
+import { TICKET_STATUSES, type TicketStatus } from '../../../../core/enums/tickets/ticket_status';
+import { statusLabels } from '../../../../core/data/models/response/tickets/ticket_response';
 import { usePermissions } from '../../../auth/logic/usePermissions';
 
 export default function TicketDetailView() {

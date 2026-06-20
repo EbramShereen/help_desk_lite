@@ -3,7 +3,7 @@ import { SubTicketRow } from './SubTicketRow';
 import { SubTicketForm } from './SubTicketForm';
 import { ProgressBar } from './ProgressBar';
 import { useSubTicketController } from '../../logic/useSubTicketController';
-import type { Subtask } from '../../models/Ticket';
+import type { Subtask } from '../../../../core/data/models/response/tickets/ticket_response';
 
 interface SubTicketListProps {
   ticketId: string;

@@ -7,18 +7,21 @@ import { AppButton, AppTextField, AppCard } from '../../../../core/widgets';
 import { ConfirmDialog } from '../../../../core/widgets/ConfirmDialog';
 import { useAdminUsersController } from '../../logic/useAdminUsersController';
 import { useAuthController } from '../../logic/useAuthController';
-import { useAdminConfigController } from '../../../admin/logic/useAdminConfigController';
+import { useRoleController } from '../../../roles/logic/useRoleController';
 import { RoleBadge } from '../widgets/RoleBadge';
 import { RoleAssignmentModal } from '../widgets/RoleAssignmentModal';
-import { createUserSchema, type CreateUserInput } from '../../models/schemas';
-import type { AuthUser } from '../../models/AuthUser';
-import { ROLES, type Role } from '../../models/Role';
+import {
+  createUserSchema,
+  type CreateUserInput,
+} from '../../../../core/data/models/request/auth/auth_request';
+import type { AuthUser } from '../../../../core/data/models/response/auth/auth_user_response';
+import { ROLES, type Role } from '../../../../core/enums/auth/role';
 
 export default function AdminUsersView() {
   const { t } = useTranslation();
   const { users, isLoading, createUser, setUserRole, setUserCustomRole, deleteUser } =
     useAdminUsersController();
-  const { customRoles, migrateRoleScopes } = useAdminConfigController();
+  const { customRoles, migrateRoleScopes } = useRoleController();
   const { logout } = useAuthController();
   const navigate = useNavigate();
   const [editingUser, setEditingUser] = useState<AuthUser | null>(null);

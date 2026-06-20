@@ -19,15 +19,15 @@ import EpicDetailView from '../features/epics/ui/views/EpicDetailView';
 import SprintsListView from '../features/sprints/ui/views/SprintsListView';
 import SprintCreateView from '../features/sprints/ui/views/SprintCreateView';
 import SprintDetailView from '../features/sprints/ui/views/SprintDetailView';
-import TeamProgressView from '../features/teams/ui/views/TeamProgressView';
 import BoardView from '../features/tickets/ui/views/BoardView';
 import SummaryView from '../features/tickets/ui/views/SummaryView';
 import BacklogView from '../features/sprints/ui/views/BacklogView';
 import TimelineView from '../features/epics/ui/views/TimelineView';
 import ProfileView from '../features/auth/ui/views/ProfileView';
-import AdminRolesView from '../features/admin/ui/views/AdminRolesView';
-import AdminRoleDetailView from '../features/admin/ui/views/AdminRoleDetailView';
-import AdminWorkflowView from '../features/admin/ui/views/AdminWorkflowView';
+import RolesView from '../features/roles/ui/views/RolesView';
+import RoleDetailView from '../features/roles/ui/views/RoleDetailView';
+import WorkflowView from '../features/workflow/ui/views/WorkflowView';
+import QuotesView from '../features/quotes/ui/views/QuotesView';
 import AuthGuard from '../features/auth/ui/guards/AuthGuard';
 import RoleGuard from '../features/auth/ui/guards/RoleGuard';
 import PermissionGuard from '../features/auth/ui/guards/PermissionGuard';
@@ -81,11 +81,14 @@ export default function AppRoutes() {
 
         {/* Admin config — permission-gated */}
         <Route element={<PermissionGuard anyOf={NAV_ACCESS.roles} />}>
-          <Route path="/admin/roles" element={<AdminRolesView />} />
-          <Route path="/admin/roles/:id" element={<AdminRoleDetailView />} />
+          <Route path="/admin/roles" element={<RolesView />} />
+          <Route path="/admin/roles/:id" element={<RoleDetailView />} />
         </Route>
         <Route element={<PermissionGuard anyOf={NAV_ACCESS.workflow} />}>
-          <Route path="/admin/workflow" element={<AdminWorkflowView />} />
+          <Route path="/admin/workflow" element={<WorkflowView />} />
+        </Route>
+        <Route element={<PermissionGuard anyOf={NAV_ACCESS.quotes} />}>
+          <Route path="/quotes" element={<QuotesView />} />
         </Route>
 
         {/* Tickets */}
@@ -120,10 +123,11 @@ export default function AppRoutes() {
           <Route path="/teams/:id" element={<TeamDetailView />} />
         </Route>
 
-        {/* Team Progress */}
+        {/* Team Progress
         <Route element={<PermissionGuard anyOf={NAV_ACCESS.teamProgress} />}>
           <Route path="/team-progress" element={<TeamProgressView />} />
         </Route>
+        */}
 
         {/* Admin: users management */}
         <Route element={<RoleGuard allowedRoles={['admin']} />}>

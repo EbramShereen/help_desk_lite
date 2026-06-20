@@ -15,21 +15,34 @@ keep the codebase consistent. Claude MUST follow them for every change.
 
 ## Folder structure (Feature-Sliced Design)
 
-- `src/core/` — shared foundation: `theme/ widgets/ responsive/ errors/ firebase/ datasource/ di/`.
-- `src/features/<feature>/` — per feature: `models/ repo/ repo_impl/ logic/ ui/{views,widgets}`.
+- `src/core/` — shared foundation: `theme/ widgets/ responsive/ errors/ di/ enums/ data/`.
+  - `src/core/data/` — the data layer: `datasource/` (single `AppDataSource`),
+    `firebase/` (Auth/Firestore handlers + config), and `models/`.
+  - `src/core/data/models/{response,request}/<feature>/` — models are split by
+    direction. `response/` holds the read shape (`interface` + `fromDoc` mapper +
+    parse helpers + display-label maps). `request/` holds the write shape (zod
+    input/update schemas + `toDoc` mapper). File names are snake_case, e.g.
+    `response/tickets/ticket_response.ts`, `request/tickets/ticket_request.ts`.
+  - `src/core/enums/<feature>/` — all domain enums/unions, ONE per file
+    (`tickets/ticket_status.ts`, `auth/role.ts`, `admin/permission.ts`, …). Infra
+    enums stay put (DI `TOKENS`, theme tokens, breakpoints, slice UI-state unions).
+- `src/features/<feature>/` — per feature: `repo/ logic/ ui/{views,widgets}`.
+  `repo/` holds BOTH the interface (`FooRepo.ts`) and impl (`FooRepoImpl.ts`).
+  Features no longer carry their own `models/` — models live in `core/data/models`.
 - `src/app/ src/lib/ src/routes/` — store, helpers, routing.
 
 ## Feature flow (build in this exact order)
 
-`models → datasource (core, shared) → repo (interface) → repo_impl → injector (register token)
- → logic (custom hook with React Query) → ui (views + widgets)`
+`enums (core/enums) → models (core/data/models/{response,request}) → datasource
+ (core/data, shared) → repo (interface + impl in one repo/ folder) → injector
+ (register token) → logic (custom hook with React Query) → ui (views + widgets)`
 
 ## Hard rules
 
 1. **Abstract + impl pair** for every service/datasource/repo: an interface
    (`Foo.ts`) and an implementation (`FooImpl.ts`). Depend on the interface.
 2. **Single core datasource.** All Firebase send/receive goes through
-   `src/core/datasource/AppDataSource`. NO per-feature datasources. Features call
+   `src/core/data/datasource/AppDataSource`. NO per-feature datasources. Features call
    the datasource (via their repo), never Firebase SDK or handlers directly.
 3. **Firebase only behind handlers** (`AuthHandler`, `FirestoreHandler`). Add a new
    handler (interface + impl) for any new Firebase service.
@@ -50,9 +63,15 @@ keep the codebase consistent. Claude MUST follow them for every change.
 
 - Interfaces: `Foo.ts` exporting `interface Foo`. Impl: `FooImpl.ts` exporting
   `class FooImpl implements Foo`. Depend on `Foo`, register `FooImpl`.
-- Models: `Ticket.ts` (type/interface + `zod` schema + mappers `fromDoc`/`toDoc`).
-- Repo: interface `TicketRepo.ts`, impl `TicketRepoImpl.ts` (constructor takes
-  `AppDataSource`). Logic hook: `useTicketController.ts` returning typed query/mutations.
+- Models: split per direction under `core/data/models`. Response file
+  `response/<feature>/<entity>_response.ts` (interface + `fromDoc` + parse/label
+  helpers); request file `request/<feature>/<entity>_request.ts` (zod schemas +
+  `toDoc`). snake_case file names.
+- Enums: one per file under `core/enums/<feature>/<enum_name>.ts` (snake_case),
+  each holding a single `as const` array + derived type, or a single string-union.
+- Repo: interface `TicketRepo.ts` and impl `TicketRepoImpl.ts` live together in the
+  feature's `repo/` folder; impl constructor takes `AppDataSource`. Logic hook:
+  `useTicketController.ts` returning typed query/mutations.
 - UI: views in `ui/views/TicketsView.tsx`, widgets in `ui/widgets/TicketCard.tsx`.
   One component per file, default-export views, named-export widgets.
 - DI tokens: add `Ticket: 'TicketRepo' as InjectionToken<TicketRepo>` to `TOKENS`.

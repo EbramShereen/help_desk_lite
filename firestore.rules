@@ -1,32 +1,18 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if true;
-    }
-
     function authed() {
       return request.auth != null;
     }
 
-    // Pointer/admin doc at users/{uid}. Admins have full profile here;
-    // employees have {workspaceId, role} pointer.
-    function userPointer() {
+    // The requester's own profile doc.
+    function me() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
 
-    // Full profile: admin → users/{uid}, employee → users/{ws}/employeesData/{uid}.
-    function me() {
-      let ptr = userPointer();
-      let ws = ptr.get('workspaceId', null);
-      return ptr.role == 'admin'
-        ? ptr
-        : get(/databases/$(database)/documents/users/$(ws)/employeesData/$(request.auth.uid)).data;
-    }
-
-    // Workspace the requester belongs to.
+    // Workspace the requester belongs to (admins: own uid; members: creator's uid).
     function myWs() {
-      return userPointer().get('workspaceId', null);
+      return me().get('workspaceId', null);
     }
 
     // True when the requester operates inside workspace `ownerId`.
@@ -99,15 +85,35 @@ service cloud.firestore {
       let u = me();
       return sameWorkspace(userId) && (isAdminU(u) || has(u, scopesOf(myWs(), u), k));
     }
+    // Fields no client write may ever touch on an existing user doc: workspace
+    // membership is immutable, and `role` (the admin god-flag) can never be
+    // changed via these rules — promote/demote is a console/admin-SDK action.
+    function userPrivFieldsUnchanged() {
+      return !request.resource.data.diff(resource.data)
+                .affectedKeys().hasAny(['role', 'workspaceId']);
+    }
     function canUpdateUser(userId) {
       let u = me();
-      return (sameWorkspace(userId) && (isAdminU(u) || has(u, scopesOf(myWs(), u), 'can_assign_role')))
-        || (request.auth.uid == userId
-            && !request.resource.data.diff(resource.data)
-                  .affectedKeys().hasAny(['role', 'teamId', 'active', 'customRoleId', 'workspaceId']));
+      // Admin / role-assigner editing a workspace member (e.g. teamId, active,
+      // customRoleId) — but never `role` or `workspaceId`.
+      let canManage = sameWorkspace(userId)
+                      && (isAdminU(u) || has(u, scopesOf(myWs(), u), 'can_assign_role'))
+                      && userPrivFieldsUnchanged();
+      // Self-service profile edit — even stricter field allowlist.
+      let canEditSelf = request.auth.uid == userId
+                        && !request.resource.data.diff(resource.data)
+                              .affectedKeys().hasAny(['role', 'teamId', 'active', 'customRoleId', 'workspaceId']);
+      return canManage || canEditSelf;
     }
 
     // ─── Workspace data — nested under the owning admin (users/{ownerId}/…) ──
+    // Quotes: any active workspace member reads; only `can_manage_quotes` writes.
+    match /users/{ownerId}/quotes/{quoteId} {
+      allow read: if inWorkspace(ownerId) && isActiveU(me());
+      allow create, update, delete:
+        if inWorkspace(ownerId) && has(me(), scopesOf(ownerId, me()), 'can_manage_quotes');
+    }
+
     match /users/{ownerId}/teams/{teamId} {
       allow read: if inWorkspace(ownerId) && isActiveU(me());
       allow create, delete: if inWorkspace(ownerId) && canManageTeams();
@@ -271,18 +277,13 @@ service cloud.firestore {
       allow write: if inWorkspace(ownerId) && configPerm('can_edit_roles');
     }
 
-    // ─── Employee profiles (workspace-scoped) ─────────────────────────────────
-    match /users/{ownerId}/employeesData/{uid} {
-      allow read: if inWorkspace(ownerId) && (isActiveU(me()) || request.auth.uid == uid);
-      allow create: if inWorkspace(ownerId) && canManageUsers('can_invite_user', uid);
-      allow update: if inWorkspace(ownerId) && canUpdateUser(uid);
-      allow delete: if inWorkspace(ownerId) && canManageUsers('can_remove_user', uid);
-    }
-
     // ─── Permission Catalogue (global, app-wide definitions) ─────────────────
     match /permissionCatalogue/{catId} {
       allow read: if authed() && isActiveU(me());
-      allow write: if iAmAdmin();
+      // App-wide definitions shared by every workspace — never client-writable.
+      // Seed/maintain via Firebase console or admin SDK to avoid one tenant
+      // mutating data all other tenants depend on.
+      allow write: if false;
     }
   }
 }

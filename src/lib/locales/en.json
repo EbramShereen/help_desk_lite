@@ -28,7 +28,18 @@
     "users": "Users",
     "roles": "Roles",
     "workflow": "Workflow",
+    "quotes": "Quotes",
     "profile": "Profile"
+  },
+  "quotes": {
+    "title": "Quotes",
+    "subtitle": "Publish quotes shown to everyone in your workspace.",
+    "generate": "Generate",
+    "generateCount": "How many",
+    "text": "Quote",
+    "author": "Author",
+    "add": "Add quote",
+    "empty": "No quotes yet."
   },
   "board": {
     "title": "Board",

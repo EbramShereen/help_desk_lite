@@ -8,7 +8,7 @@ import { cn } from '../../lib/cn';
 import { AppButton } from './AppButton';
 import { ThemeToggle } from './ThemeToggle';
 import { LanguageSwitcher } from './LanguageSwitcher';
-import type { Permission } from '../../features/admin/models/Permission';
+import type { Permission } from '../enums/admin/permission';
 import { NAV_ACCESS } from '../../routes/navAccess';
 
 interface NavItem {
@@ -32,10 +32,11 @@ const NAV_ITEMS: NavItem[] = [
   { labelKey: 'nav.epics', to: '/epics', anyOf: NAV_ACCESS.epics },
   { labelKey: 'nav.sprints', to: '/sprints', anyOf: NAV_ACCESS.sprints },
   { labelKey: 'nav.teams', to: '/teams', anyOf: NAV_ACCESS.teams },
-  { labelKey: 'nav.teamProgress', to: '/team-progress', anyOf: NAV_ACCESS.teamProgress },
+  // { labelKey: 'nav.teamProgress', to: '/team-progress', anyOf: NAV_ACCESS.teamProgress },
   { labelKey: 'nav.users', to: '/admin/users', roles: ['admin'] },
   { labelKey: 'nav.roles', to: '/admin/roles', anyOf: NAV_ACCESS.roles },
   { labelKey: 'nav.workflow', to: '/admin/workflow', anyOf: NAV_ACCESS.workflow },
+  { labelKey: 'nav.quotes', to: '/quotes', anyOf: NAV_ACCESS.quotes },
   { labelKey: 'nav.profile', to: '/profile' },
 ];
 

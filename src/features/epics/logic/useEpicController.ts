@@ -2,7 +2,8 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInjected } from '../../../core/di/DependencyProvider';
 import { TOKENS } from '../../../core/di/tokens';
 import { useAppSelector } from '../../../app/hooks';
-import type { EpicInput, EpicUpdate } from '../models/Epic';
+import { unwrap } from '../../../core/models/Result';
+import type { EpicInput, EpicUpdate } from '../../../core/data/models/request/epics/epic_request';
 
 const EPICS_KEY = 'epics';
 
@@ -13,44 +14,47 @@ export function useEpicController(teamId?: string) {
 
   const epicsQuery = useQuery({
     queryKey: [EPICS_KEY, teamId],
-    queryFn: () => repo.listEpics(teamId),
+    queryFn: () => unwrap(repo.listEpics(teamId)),
+    select: (result) => result.items,
   });
 
   const createEpic = useMutation({
-    mutationFn: (input: EpicInput) => repo.createEpic(input, user!.uid),
+    mutationFn: (input: EpicInput) => unwrap(repo.createEpic(input, user!.uid)),
     onSuccess: () => qc.invalidateQueries({ queryKey: [EPICS_KEY] }),
   });
 
   const updateEpic = useMutation({
-    mutationFn: ({ id, patch }: { id: string; patch: EpicUpdate }) => repo.updateEpic(id, patch),
+    mutationFn: ({ id, patch }: { id: string; patch: EpicUpdate }) =>
+      unwrap(repo.updateEpic(id, patch)),
     onSuccess: () => qc.invalidateQueries({ queryKey: [EPICS_KEY] }),
   });
 
   const deleteEpic = useMutation({
-    mutationFn: (id: string) => repo.deleteEpic(id),
+    mutationFn: (id: string) => unwrap(repo.deleteEpic(id)),
     onSuccess: () => qc.invalidateQueries({ queryKey: [EPICS_KEY] }),
   });
 
   const assignTeams = useMutation({
     mutationFn: ({ id, teamIds }: { id: string; teamIds: string[] }) =>
-      repo.assignTeams(id, teamIds),
+      unwrap(repo.assignTeams(id, teamIds)),
     onSuccess: () => qc.invalidateQueries({ queryKey: [EPICS_KEY] }),
   });
 
   const removeTeam = useMutation({
-    mutationFn: ({ id, teamId }: { id: string; teamId: string }) => repo.removeTeam(id, teamId),
+    mutationFn: ({ id, teamId }: { id: string; teamId: string }) =>
+      unwrap(repo.removeTeam(id, teamId)),
     onSuccess: () => qc.invalidateQueries({ queryKey: [EPICS_KEY] }),
   });
 
   const addTickets = useMutation({
     mutationFn: ({ id, ticketIds }: { id: string; ticketIds: string[] }) =>
-      repo.addTickets(id, ticketIds),
+      unwrap(repo.addTickets(id, ticketIds)),
     onSuccess: () => qc.invalidateQueries({ queryKey: [EPICS_KEY] }),
   });
 
   const removeTicket = useMutation({
     mutationFn: ({ id, ticketId }: { id: string; ticketId: string }) =>
-      repo.removeTicket(id, ticketId),
+      unwrap(repo.removeTicket(id, ticketId)),
     onSuccess: () => qc.invalidateQueries({ queryKey: [EPICS_KEY] }),
   });
 
@@ -73,12 +77,12 @@ export function useEpicDetailController(epicId: string) {
 
   const epicQuery = useQuery({
     queryKey: [EPICS_KEY, epicId],
-    queryFn: () => repo.getEpic(epicId),
+    queryFn: () => unwrap(repo.getEpic(epicId)),
     enabled: !!epicId,
   });
 
   const updateEpic = useMutation({
-    mutationFn: (patch: EpicUpdate) => repo.updateEpic(epicId, patch),
+    mutationFn: (patch: EpicUpdate) => unwrap(repo.updateEpic(epicId, patch)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [EPICS_KEY, epicId] });
       qc.invalidateQueries({ queryKey: [EPICS_KEY] });
@@ -86,12 +90,12 @@ export function useEpicDetailController(epicId: string) {
   });
 
   const deleteEpic = useMutation({
-    mutationFn: () => repo.deleteEpic(epicId),
+    mutationFn: () => unwrap(repo.deleteEpic(epicId)),
     onSuccess: () => qc.invalidateQueries({ queryKey: [EPICS_KEY] }),
   });
 
   const assignTeams = useMutation({
-    mutationFn: (teamIds: string[]) => repo.assignTeams(epicId, teamIds),
+    mutationFn: (teamIds: string[]) => unwrap(repo.assignTeams(epicId, teamIds)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [EPICS_KEY, epicId] });
       qc.invalidateQueries({ queryKey: [EPICS_KEY] });
@@ -99,7 +103,7 @@ export function useEpicDetailController(epicId: string) {
   });
 
   const removeTeam = useMutation({
-    mutationFn: (teamId: string) => repo.removeTeam(epicId, teamId),
+    mutationFn: (teamId: string) => unwrap(repo.removeTeam(epicId, teamId)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [EPICS_KEY, epicId] });
       qc.invalidateQueries({ queryKey: [EPICS_KEY] });
@@ -107,7 +111,7 @@ export function useEpicDetailController(epicId: string) {
   });
 
   const addTickets = useMutation({
-    mutationFn: (ticketIds: string[]) => repo.addTickets(epicId, ticketIds),
+    mutationFn: (ticketIds: string[]) => unwrap(repo.addTickets(epicId, ticketIds)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [EPICS_KEY, epicId] });
       qc.invalidateQueries({ queryKey: [EPICS_KEY] });
@@ -115,7 +119,7 @@ export function useEpicDetailController(epicId: string) {
   });
 
   const removeTicket = useMutation({
-    mutationFn: (ticketId: string) => repo.removeTicket(epicId, ticketId),
+    mutationFn: (ticketId: string) => unwrap(repo.removeTicket(epicId, ticketId)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [EPICS_KEY, epicId] });
       qc.invalidateQueries({ queryKey: [EPICS_KEY] });

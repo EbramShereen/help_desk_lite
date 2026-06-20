@@ -2,8 +2,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useInjected } from '../../../core/di/DependencyProvider';
 import { TOKENS } from '../../../core/di/tokens';
 import { useAppSelector } from '../../../app/hooks';
+import { unwrap } from '../../../core/models/Result';
 import type { TicketFilters, TicketViewScope } from '../repo/TicketRepo';
-import type { TicketInput, TicketStatus, TicketUpdate, LinkType } from '../models/Ticket';
+import type {
+  TicketInput,
+  TicketUpdate,
+} from '../../../core/data/models/request/tickets/ticket_request';
+import type { TicketStatus } from '../../../core/enums/tickets/ticket_status';
+import type { LinkType } from '../../../core/enums/tickets/link_type';
 
 const TICKETS_KEY = 'tickets';
 
@@ -15,35 +21,38 @@ export function useTicketController(filters?: TicketFilters, scope?: TicketViewS
   const ticketsQuery = useQuery({
     queryKey: [TICKETS_KEY, filters, scope],
     queryFn: () =>
-      scope ? repo.listTicketsScoped(scope, user?.uid ?? '', filters) : repo.listTickets(filters),
+      scope
+        ? unwrap(repo.listTicketsScoped(scope, user?.uid ?? '', filters))
+        : unwrap(repo.listTickets(filters)),
+    select: (result) => result.items,
   });
 
   const createTicket = useMutation({
-    mutationFn: (input: TicketInput) => repo.createTicket(input, user!.uid),
+    mutationFn: (input: TicketInput) => unwrap(repo.createTicket(input, user!.uid)),
     onSuccess: () => qc.invalidateQueries({ queryKey: [TICKETS_KEY] }),
   });
 
   const updateTicket = useMutation({
     mutationFn: ({ id, patch }: { id: string; patch: TicketUpdate }) =>
-      repo.updateTicket(id, patch),
+      unwrap(repo.updateTicket(id, patch)),
     onSuccess: () => qc.invalidateQueries({ queryKey: [TICKETS_KEY] }),
   });
 
   const updateStatus = useMutation({
     mutationFn: ({ id, status }: { id: string; status: TicketStatus }) =>
-      repo.updateTicketStatus(id, status),
+      unwrap(repo.updateTicketStatus(id, status)),
     onSuccess: () => qc.invalidateQueries({ queryKey: [TICKETS_KEY] }),
   });
 
   // Dynamic-status move (Kanban). Status id is admin-defined.
   const moveStatus = useMutation({
     mutationFn: ({ id, statusId }: { id: string; statusId: string }) =>
-      repo.updateTicketStatusId(id, statusId),
+      unwrap(repo.updateTicketStatusId(id, statusId)),
     onSuccess: () => qc.invalidateQueries({ queryKey: [TICKETS_KEY] }),
   });
 
   const softDelete = useMutation({
-    mutationFn: (id: string) => repo.softDeleteTicket(id),
+    mutationFn: (id: string) => unwrap(repo.softDeleteTicket(id)),
     onSuccess: () => qc.invalidateQueries({ queryKey: [TICKETS_KEY] }),
   });
 
@@ -57,12 +66,12 @@ export function useTicketDetailController(ticketId: string) {
 
   const ticketQuery = useQuery({
     queryKey: [TICKETS_KEY, ticketId],
-    queryFn: () => repo.getTicket(ticketId),
+    queryFn: () => unwrap(repo.getTicket(ticketId)),
     enabled: !!ticketId,
   });
 
   const updateTicket = useMutation({
-    mutationFn: (patch: TicketUpdate) => repo.updateTicket(ticketId, patch),
+    mutationFn: (patch: TicketUpdate) => unwrap(repo.updateTicket(ticketId, patch)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [TICKETS_KEY, ticketId] });
       qc.invalidateQueries({ queryKey: [TICKETS_KEY] });
@@ -70,7 +79,7 @@ export function useTicketDetailController(ticketId: string) {
   });
 
   const updateStatus = useMutation({
-    mutationFn: (status: TicketStatus) => repo.updateTicketStatus(ticketId, status),
+    mutationFn: (status: TicketStatus) => unwrap(repo.updateTicketStatus(ticketId, status)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: [TICKETS_KEY, ticketId] });
       qc.invalidateQueries({ queryKey: [TICKETS_KEY] });
@@ -78,7 +87,7 @@ export function useTicketDetailController(ticketId: string) {
   });
 
   const softDelete = useMutation({
-    mutationFn: () => repo.softDeleteTicket(ticketId),
+    mutationFn: () => unwrap(repo.softDeleteTicket(ticketId)),
     onSuccess: () => qc.invalidateQueries({ queryKey: [TICKETS_KEY] }),
   });
 
@@ -89,12 +98,12 @@ export function useTicketDetailController(ticketId: string) {
 
   const addLink = useMutation({
     mutationFn: ({ targetId, type }: { targetId: string; type: LinkType }) =>
-      repo.addLink(ticketId, targetId, type),
+      unwrap(repo.addLink(ticketId, targetId, type)),
     onSuccess: invalidateDetail,
   });
 
   const removeLink = useMutation({
-    mutationFn: (targetId: string) => repo.removeLink(ticketId, targetId),
+    mutationFn: (targetId: string) => unwrap(repo.removeLink(ticketId, targetId)),
     onSuccess: invalidateDetail,
   });
 

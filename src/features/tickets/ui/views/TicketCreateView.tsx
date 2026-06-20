@@ -6,18 +6,24 @@ import { useTicketController } from '../../logic/useTicketController';
 import { useMembersController } from '../../logic/useMembersController';
 import { useEpicController } from '../../../epics/logic/useEpicController';
 import { useSprintController } from '../../../sprints/logic/useSprintController';
+import { useTeamController } from '../../../teams/logic/useTeamController';
 import { AppCard } from '../../../../core/widgets/AppCard';
 import { AppButton } from '../../../../core/widgets/AppButton';
+import { AppDropdown } from '../../../../core/widgets/AppDropdown';
 import { ConfirmDialog } from '../../../../core/widgets/ConfirmDialog';
 import { TicketForm } from '../widgets/TicketForm';
-import type { TicketInput } from '../../models/Ticket';
+import type { TicketInput } from '../../../../core/data/models/request/tickets/ticket_request';
 
 export default function TicketCreateView() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const user = useAppSelector((s) => s.auth.user);
+  const isAdmin = user?.role === 'admin';
   const { createTicket } = useTicketController();
-  const teamId = user?.teamId ?? '';
+  const [selectedAdminTeamId, setSelectedAdminTeamId] = useState<string>('');
+  const { teamsQuery } = useTeamController();
+
+  const teamId = user?.teamId || (isAdmin ? selectedAdminTeamId : '');
   const { memberOptions } = useMembersController(teamId || undefined);
   const { epicsQuery } = useEpicController(teamId || undefined);
   const epicOptions = useMemo(
@@ -47,6 +53,23 @@ export default function TicketCreateView() {
       </div>
 
       <AppCard>
+        {isAdmin && !user?.teamId && (
+          <div className="mb-6">
+            {teamsQuery.isLoading ? (
+              <p className="text-sm text-content-muted">Loading teams...</p>
+            ) : teamsQuery.isError ? (
+              <p className="text-sm text-danger">Failed to load teams.</p>
+            ) : (
+              <AppDropdown
+                label="Select Team"
+                placeholder="Choose a team for this ticket"
+                options={(teamsQuery.data ?? []).map((t) => ({ label: t.label, value: t.id }))}
+                value={selectedAdminTeamId}
+                onChange={(e) => setSelectedAdminTeamId(e.target.value)}
+              />
+            )}
+          </div>
+        )}
         {teamId ? (
           <TicketForm
             teamMembers={memberOptions}
@@ -58,7 +81,9 @@ export default function TicketCreateView() {
             sprintOptions={sprintOptions}
           />
         ) : (
-          <p className="text-sm text-content-muted">You are not assigned to a team.</p>
+          <p className="text-sm text-content-muted">
+            {isAdmin ? 'Please select a team to start.' : 'You are not assigned to a team.'}
+          </p>
         )}
       </AppCard>
 

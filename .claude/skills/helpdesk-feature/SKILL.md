@@ -12,17 +12,17 @@ are binding.
 ## Vertical build order (never skip, never reorder)
 
 ```
-models -> datasource (core, extend if needed) -> repo (interface) -> repo_impl
+enums -> models (response/request) -> datasource (core) -> repo (interface + impl in one repo/)
   -> injector (register token) -> logic (useXxxController) -> ui (views + widgets)
 ```
 
 ## Route the ticket by epic label
 
-| Epic label   | Layers touched                                                           | Load skill          |
-| ------------ | ------------------------------------------------------------------------ | ------------------- |
-| **backend**  | models, datasource ext, repo, repo_impl, DI token, new Firebase handlers | `helpdesk-backend`  |
-| **frontend** | logic hooks (`useXxxController`), routing, page wiring, store slices     | `helpdesk-frontend` |
-| **ui/ux**    | views, shared widgets, theme tokens, responsive                          | `helpdesk-uiux`     |
+| Epic label   | Layers touched                                                                                             | Load skill          |
+| ------------ | ---------------------------------------------------------------------------------------------------------- | ------------------- |
+| **backend**  | enums, models (response/request), datasource ext, repo (interface + impl), DI token, new Firebase handlers | `helpdesk-backend`  |
+| **frontend** | logic hooks (`useXxxController`), routing, page wiring, store slices                                       | `helpdesk-frontend` |
+| **ui/ux**    | views, shared widgets, theme tokens, responsive                                                            | `helpdesk-uiux`     |
 
 A full vertical feature usually spans all three — build backend -> frontend -> ui/ux.
 
@@ -40,8 +40,8 @@ A full vertical feature usually spans all three — build backend -> frontend ->
 ## Existing core foundation (already built — reuse, don't recreate)
 
 - DI: `src/core/di/{tokens.ts,injector.ts,DependencyProvider.tsx}` — `useInjected(TOKENS.X)`.
-- Datasource: `src/core/datasource/AppDataSource` (the ONLY Firebase gateway).
-- Handlers: `src/core/firebase/{AuthHandler,FirestoreHandler}` (+ Impls).
+- Datasource: `src/core/data/datasource/AppDataSource` (the ONLY Firebase gateway).
+- Handlers: `src/core/data/firebase/{AuthHandler,FirestoreHandler}` (+ Impls).
 - Errors: `src/core/errors/{AppError,FirebaseErrorMapper}`.
 - Theme: `src/core/theme/{tokens.ts,AppThemeProvider.tsx}` + `tailwind.config.js`.
 - Widgets: `src/core/widgets/` (AppButton, AppTextField, AppDropdown, AppCard, AppBadge).

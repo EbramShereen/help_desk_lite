@@ -12,7 +12,7 @@ import {
 import { useBoardController } from '../../logic/useBoardController';
 import { useMembersController } from '../../logic/useMembersController';
 import { useEpicController } from '../../../epics/logic/useEpicController';
-import { useAdminConfigController } from '../../../admin/logic/useAdminConfigController';
+import { useLabelController } from '../../../labels/logic/useLabelController';
 import { usePermissions } from '../../../auth/logic/usePermissions';
 import { TicketCard } from '../widgets/TicketCard';
 import type { TicketFilters } from '../../repo/TicketRepo';
@@ -38,7 +38,7 @@ export default function BoardView() {
   const { columns, isLoading, error, moveStatus } = useBoardController(filters);
   const { memberOptions } = useMembersController();
   const { epicsQuery } = useEpicController();
-  const { labels } = useAdminConfigController();
+  const { labels } = useLabelController();
   const { canAny } = usePermissions();
   const canMove = canAny(
     'can_move_ticket',

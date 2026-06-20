@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useInjected } from '../../../core/di/DependencyProvider';
 import { TOKENS } from '../../../core/di/tokens';
+import { unwrap } from '../../../core/models/Result';
 
 const TEAMS_KEY = 'teams';
 
@@ -10,7 +11,7 @@ export function useTeamMembersController(teamId: string | undefined) {
 
   const teamQuery = useQuery({
     queryKey: [TEAMS_KEY, teamId],
-    queryFn: () => repo.getTeam(teamId!),
+    queryFn: () => unwrap(repo.getTeam(teamId!)),
     enabled: !!teamId,
   });
 

@@ -1,4 +1,4 @@
-import type { Subtask } from '../../models/Ticket';
+import type { Subtask } from '../../../../core/data/models/response/tickets/ticket_response';
 
 interface SubTicketRowProps {
   subtask: Subtask;

@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
 import { AppCard } from '../../../../core/widgets/AppCard';
 import { TicketRow } from '../../../tickets/ui/widgets/TicketRow';
-import type { Ticket, TicketStatus } from '../../../tickets/models/Ticket';
-import { statusLabels } from '../../../tickets/models/Ticket';
+import type { Ticket } from '../../../../core/data/models/response/tickets/ticket_response';
+import type { TicketStatus } from '../../../../core/enums/tickets/ticket_status';
+import { statusLabels } from '../../../../core/data/models/response/tickets/ticket_response';
 
 const COLUMNS: TicketStatus[] = ['todo', 'inProgress', 'done'];
 

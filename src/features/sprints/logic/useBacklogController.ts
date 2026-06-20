@@ -4,8 +4,9 @@ import { useInjected } from '../../../core/di/DependencyProvider';
 import { TOKENS } from '../../../core/di/tokens';
 import { useSprintController } from './useSprintController';
 import { useTicketController } from '../../tickets/logic/useTicketController';
-import type { Sprint } from '../models/Sprint';
-import type { Ticket } from '../../tickets/models/Ticket';
+import { unwrap } from '../../../core/models/Result';
+import type { Sprint } from '../../../core/data/models/response/sprints/sprint_response';
+import type { Ticket } from '../../../core/data/models/response/tickets/ticket_response';
 
 const SPRINTS_KEY = 'sprints';
 const TICKETS_KEY = 'tickets';
@@ -57,8 +58,8 @@ export function useBacklogController(teamId?: string) {
       toSprintId: string | null;
       assigneeIds: string[];
     }) => {
-      if (fromSprintId) await repo.removeTicketFromSprint(fromSprintId, ticketId);
-      if (toSprintId) await repo.addTicketToSprint(toSprintId, ticketId, assigneeIds);
+      if (fromSprintId) await unwrap(repo.removeTicketFromSprint(fromSprintId, ticketId));
+      if (toSprintId) await unwrap(repo.addTicketToSprint(toSprintId, ticketId, assigneeIds));
     },
     onSuccess: invalidate,
   });

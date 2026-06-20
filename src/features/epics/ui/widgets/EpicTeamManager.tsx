@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import type { Team } from '../../../teams/models/Team';
+import type { Team } from '../../../../core/data/models/response/teams/team_response';
 import { AppCard } from '../../../../core/widgets/AppCard';
 import { AppButton } from '../../../../core/widgets/AppButton';
 import { AppDropdown } from '../../../../core/widgets/AppDropdown';

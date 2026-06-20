@@ -1,7 +1,7 @@
 import type { AppBadgeProps } from './AppBadge';
 import { AppBadge } from './AppBadge';
-import type { TicketPriority } from '../../features/tickets/models/Ticket';
-import { priorityLabels } from '../../features/tickets/models/Ticket';
+import type { TicketPriority } from '../enums/tickets/ticket_priority';
+import { priorityLabels } from '../data/models/response/tickets/ticket_response';
 
 type Tone = AppBadgeProps['tone'];
 

@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { useTicketController } from './useTicketController';
-import { useAdminConfigController } from '../../admin/logic/useAdminConfigController';
+import { useWorkflowController } from '../../workflow/logic/useWorkflowController';
 import type { TicketFilters } from '../repo/TicketRepo';
 
 export interface StatusBreakdown {
@@ -27,7 +27,7 @@ export interface SummaryStats {
  */
 export function useSummaryController(filters?: TicketFilters) {
   const { ticketsQuery } = useTicketController(filters);
-  const { statuses } = useAdminConfigController();
+  const { statuses } = useWorkflowController();
 
   const stats = useMemo<SummaryStats>(() => {
     const tickets = ticketsQuery.data ?? [];
